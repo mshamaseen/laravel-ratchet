@@ -19,21 +19,17 @@ class LaravelRatchetServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                Generator::class
+                WebSocketService::class
             ]);
         }
 
         $this->publishes([
             __DIR__.'/config' => realpath('config'),
-        ],'repository-config');
+        ],'laravel-ratchet');
 
-        if ($this->app['config']->get('repository') === null) {
-            $this->app['config']->set('repository', require __DIR__.'/config/repository.php');
+        if ($this->app['config']->get('laravel-ratchet') === null) {
+            $this->app['config']->set('laravel-ratchet', require __DIR__.'config/laravel-ratchet.php');
         }
-        $this->mergeConfigFrom(__DIR__.'/config/repository.php', 'repository-config');
-        $this->publishes([
-            realpath(__DIR__ . '/../stubs') => \Config::get('repository.resources_path',realpath(__DIR__.'/../../../../resources/')),
-        ],'repository-stub');
     }
 
     /**

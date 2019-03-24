@@ -1,12 +1,9 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Shamaseen\Laravel\Ratchet;
 
-use App\WebSockets\Chats\Chat;
 use App\WebSockets\Receiver;
-use App\WebSockets\Routes\Routes;
 use Illuminate\Console\Command;
-use Ratchet\App;
 use Ratchet\Http\HttpServer;
 use Ratchet\Server\IoServer;
 use Ratchet\WebSocket\WsServer;
@@ -16,7 +13,7 @@ use Ratchet\WebSocket\WsServer;
  * Class ChatService
  * @package App\Console\Commands
  */
-class ChatService extends Command
+class WebSocketService extends Command
 {
     /**
      * The name and signature of the console command.
