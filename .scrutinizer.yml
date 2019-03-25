@@ -14,7 +14,7 @@ tools:
 
     # Code Sniffer
     php_code_sniffer:
-        enabled:              true
+        enabled:              false
         config:
             standard:         PSR2
         filter:

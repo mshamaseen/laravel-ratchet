@@ -86,6 +86,8 @@ class Receiver implements MessageComponentInterface
 
             $this->cloneProperties($this,$controller);
 
+            $controller->conn = $from;
+
             if(!method_exists($controller,$method))
             {
                 $this->error($msg,$from,'Method doesnt\'t exist !');

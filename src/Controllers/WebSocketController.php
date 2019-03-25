@@ -26,6 +26,7 @@ class WebSocketController
     public $clients;
     private $routes;
     public $userAuthSocketMapper;
+    public $conn;
 
     public function __construct()
     {

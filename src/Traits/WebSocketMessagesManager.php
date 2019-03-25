@@ -55,7 +55,7 @@ trait WebSocketMessagesManager
         $resourceId = $this->userAuthSocketMapper[$user_id];
         /** @var ConnectionInterface $conn */
         $conn = $this->clients[$resourceId]->conn;
-        $conn->send(json_encode($data));
+        $this->sendToWebSocketUser($conn,$data);
     }
 
     /**
@@ -63,7 +63,7 @@ trait WebSocketMessagesManager
      */
     function sendBack($data)
     {
-       $this->sendToUser(\Auth::id(),$data);
+       $this->sendToWebSocketUser($this->conn,$data);
     }
 
 }
