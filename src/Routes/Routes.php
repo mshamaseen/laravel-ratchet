@@ -20,25 +20,26 @@ class Routes
 
     function mainRoutes()
     {
-        $this->route('initializeWebsocket','App\WebSockets\Controllers\InitializeController','index');
-    }
-
-
-    function map()
-    {
-
+        $this->make('initializeWebsocket','Shamaseen\Laravel\Ratchet\Controllers\InitializeController','index');
     }
 
     /**
      * @param $routeName
      * @param $controller
      * @param $method
+     * @param bool $authenticated
      */
-    function route($routeName, $controller, $method)
+    function make($routeName, $controller, $method,$authenticated = true)
     {
         $this->routes[$routeName] = (object) [
             'controller'=>$controller,
-            'method'=>$method
+            'method'=>$method,
+            'auth'=> $authenticated
         ];
+    }
+
+    function getRoutes()
+    {
+        return $this->routes;
     }
 }

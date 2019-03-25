@@ -8,9 +8,6 @@
 
 namespace Shamaseen\Laravel\Ratchet\Controllers;
 
-
-use Shamaseen\Laravel\Ratchet\Controllers\WebSocketController;
-
 /**
  * Class InitializeController
  * @package App\WebSockets\Controllers

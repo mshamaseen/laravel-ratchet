@@ -9,7 +9,9 @@
 namespace Shamaseen\Laravel\Ratchet;
 
 
+use function Composer\Autoload\includeFile;
 use Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException;
+use Shamaseen\Laravel\Ratchet\Facades\WsRoute;
 use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
 use Shamaseen\Laravel\Ratchet\Routes\Routes;
 use Ratchet\ConnectionInterface;
@@ -38,11 +40,11 @@ class Receiver implements MessageComponentInterface
     {
         $this->clients = [];
         $this->userAuthSocketMapper = [];
+        WsRoute::mainRoutes();
 
-        $routes = new Routes();
-        $routes->mainRoutes();
-        $routes->map();
-        $this->routes = $routes->routes;
+        include base_path().'/routes/websocket.php';
+
+        $this->routes = WsRoute::getRoutes();
     }
 
     /**
@@ -73,14 +75,10 @@ class Receiver implements MessageComponentInterface
 
             \Session::start();
 
-            if(!\Auth::check())
+            if($this->routes[$msg->route]->auth && !\Auth::check())
                 $this->error($msg,$from,'Unauthenticated.');
-
-            //Add the user id to mapper
-            $this->userAuthSocketMapper[\Auth::id()] = $from->resourceId;
-
-            if(!isset($this->routes[$msg->route]))
-                $this->error($msg,$from,'No such route !');
+            else
+                $this->userAuthSocketMapper[\Auth::id()] = $from->resourceId;
 
             $class = $this->routes[$msg->route]->controller;
             $method = $this->routes[$msg->route]->method;
@@ -134,6 +132,9 @@ class Receiver implements MessageComponentInterface
         {
             $this->error($msg,$from,'You can\'t send a request without the route and the session id !');
         }
+
+        if(!isset($this->routes[$msg->route]))
+            $this->error($msg,$from,'No such route !');
     }
 
     /**

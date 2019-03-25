@@ -3,6 +3,8 @@
 namespace Shamaseen\Laravel\Ratchet;
 
 use Illuminate\Support\ServiceProvider;
+use Shamaseen\Laravel\Ratchet\Commands\WebSocketService;
+use Shamaseen\Laravel\Ratchet\Routes\Routes;
 
 /**
  * Class GeneratorServiceProvider
@@ -25,10 +27,11 @@ class LaravelRatchetServiceProvider extends ServiceProvider
 
         $this->publishes([
             __DIR__.'/config' => realpath('config'),
+            __DIR__.'/Routes/websocket' => realpath('routes'),
         ],'laravel-ratchet');
 
         if ($this->app['config']->get('laravel-ratchet') === null) {
-            $this->app['config']->set('laravel-ratchet', require __DIR__.'config/laravel-ratchet.php');
+            $this->app['config']->set('laravel-ratchet', require __DIR__.'/config/laravel-ratchet.php');
         }
     }
 
@@ -39,6 +42,8 @@ class LaravelRatchetServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
+        $this->app->bind('WsRoute',function (){
+            return new Routes();
+        });
     }
 }

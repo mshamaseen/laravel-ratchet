@@ -54,7 +54,7 @@ trait WebSocketMessagesManager
     {
         $resourceId = $this->userAuthSocketMapper[$user_id];
         /** @var ConnectionInterface $conn */
-        $conn = $this->clients[$resourceId];
+        $conn = $this->clients[$resourceId]->conn;
         $conn->send(json_encode($data));
     }
 

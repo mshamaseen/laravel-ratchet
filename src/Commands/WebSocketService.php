@@ -1,8 +1,8 @@
 <?php
 
-namespace Shamaseen\Laravel\Ratchet;
+namespace Shamaseen\Laravel\Ratchet\Commands;
 
-use App\WebSockets\Receiver;
+use Shamaseen\Laravel\Ratchet\Receiver;
 use Illuminate\Console\Command;
 use Ratchet\Http\HttpServer;
 use Ratchet\Server\IoServer;
