@@ -20,7 +20,7 @@ class RoomController extends WebSocketController
      */
     function enterRoom($room_id)
     {
-        $this->checkForRoom($room_id,true);
+        $this->validateRoom($room_id,true);
 
         $this->addMember($room_id);
     }
@@ -30,7 +30,7 @@ class RoomController extends WebSocketController
      */
     function exitRoom($room_id)
     {
-        $this->checkForRoom($room_id);
+        $this->validateRoom($room_id);
 
         $this->removeMember($room_id);
     }

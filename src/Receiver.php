@@ -10,6 +10,7 @@
 
 namespace Shamaseen\Laravel\Ratchet;
 
+use Illuminate\Validation\ValidationException;
 use Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException;
 use Shamaseen\Laravel\Ratchet\Facades\WsRoute;
 use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
@@ -31,7 +32,7 @@ class Receiver implements MessageComponentInterface
     public $clients;
     private $routes;
     public $userAuthSocketMapper;
-    public $rooms;
+    public $rooms = [];
 
     /**
      * WebSocket constructor.
@@ -77,13 +78,14 @@ class Receiver implements MessageComponentInterface
 
             \Session::start();
 
-            if($this->routes[$msg->route]->auth && !\Auth::check())
+            $route = $this->routes[$msg->route];
+            if($route->auth && !\Auth::check())
                 $this->error($msg,$from,'Unauthenticated.');
             else
                 $this->userAuthSocketMapper[\Auth::id()] = $from->resourceId;
 
-            $class = $this->routes[$msg->route]->controller;
-            $method = $this->routes[$msg->route]->method;
+            $class = $route->controller;
+            $method = $route->method;
             $controller = new $class;
 
             $this->cloneProperties($this,$controller);
@@ -91,17 +93,25 @@ class Receiver implements MessageComponentInterface
             $controller->conn = $from;
             $controller->receiver = $this;
             $controller->request = $msg;
+            $controller->route = $route;
 
             if(!method_exists($controller,$method))
             {
                 $this->error($msg,$from,'Method doesnt\'t exist !');
             }
 
-            $controller->$method($msg);
+            $controller->$method();
         }
         catch (WebSocketException $exception)
         {
 
+        }
+        catch(ValidationException $exception)
+        {
+            $this->sendToWebSocketUser($from,[
+                'message'=>$exception->getMessage(),
+                'errors'=> $exception->errors()
+            ]);
         }
     }
 
@@ -121,6 +131,7 @@ class Receiver implements MessageComponentInterface
      */
     public function onError(ConnectionInterface $conn, \Exception $e) {
         echo "An error has occurred: {$e->getMessage()}\n";
+        echo "In {$e->getFile()} line {$e->getLine()}\n";
 
         $conn->close();
         echo 'end';
@@ -157,5 +168,9 @@ class Receiver implements MessageComponentInterface
     function mainRoutes()
     {
         WsRoute::make('initializeWebsocket','Shamaseen\Laravel\Ratchet\Controllers\InitializeController','index');
+        WsRoute::make('room-enter','Shamaseen\Laravel\Ratchet\Controllers\RoomController','enterRoom');
+        WsRoute::make('room-exit','Shamaseen\Laravel\Ratchet\Controllers\RoomController','exitRoom');
+        WsRoute::make('send-to-user','Shamaseen\Laravel\Ratchet\Controllers\ChatController','sendMessageToUser');
+        WsRoute::make('send-to-room','Shamaseen\Laravel\Ratchet\Controllers\ChatController','sendMessageToRoom');
     }
 }

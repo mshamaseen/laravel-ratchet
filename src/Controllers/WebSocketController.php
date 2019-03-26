@@ -13,6 +13,7 @@ use Ratchet\ConnectionInterface;
 use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
 use Shamaseen\Laravel\Ratchet\Objects\Rooms\Room;
 use Shamaseen\Laravel\Ratchet\Receiver;
+use Shamaseen\Laravel\Ratchet\Traits\Validation;
 use Shamaseen\Laravel\Ratchet\Traits\WebSocketMessagesManager;
 
 /**
@@ -21,7 +22,7 @@ use Shamaseen\Laravel\Ratchet\Traits\WebSocketMessagesManager;
  */
 class WebSocketController
 {
-    use WebSocketMessagesManager;
+    use WebSocketMessagesManager,Validation;
 
     /**
      * @var Client[]
@@ -56,6 +57,11 @@ class WebSocketController
      * @var object
      */
     public $request;
+
+    /**
+     * @var array
+     */
+    public $route;
 
     public function __construct()
     {

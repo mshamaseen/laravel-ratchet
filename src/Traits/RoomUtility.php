@@ -55,16 +55,35 @@ trait RoomUtility
      * @param bool $createIfNotExist
      * @return Room
      */
-    function checkForRoom($room_id,$createIfNotExist = false)
+    function validateRoom($room_id,$createIfNotExist = false)
     {
-        if(!array_key_exists($room_id,$this->receiver->rooms[]))
+        if(!array_key_exists($room_id,$this->receiver->rooms))
         {
             if($createIfNotExist)
             {
                 $room = $this->receiver->rooms[$room_id] = new Room($room_id);
                 return $room;
             }
-            $this->error($this->request,$this->conn,'Room key not exist');
+            $this->error($this->request,$this->conn,'Room is not exist');
+        }
+    }
+
+    /**
+     * @param $room_id
+     * @param $message
+     */
+    function sendToRoom($room_id, $message)
+    {
+        $this->validateRoom($room_id);
+        /** @var Room $room */
+        $room = $this->rooms[$room_id];
+        $client = $this->clients[$this->userAuthSocketMapper[\Auth::id()]];
+        if(!$this->hasMember($client))
+            $this->error($this->request,$this->conn,'You can\'t send a message to room which you are not in !');
+
+        foreach ($room->members as $member)
+        {
+            $this->sendToUser($member->id,$message);
         }
     }
 }

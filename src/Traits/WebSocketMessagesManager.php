@@ -11,6 +11,7 @@ namespace Shamaseen\Laravel\Ratchet\Traits;
 
 use Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException;
 use Ratchet\ConnectionInterface;
+use Shamaseen\Laravel\Ratchet\Objects\Rooms\Room;
 
 /**
  * Trait WebSocketMessagesManager
@@ -19,16 +20,18 @@ use Ratchet\ConnectionInterface;
 trait WebSocketMessagesManager
 {
     /**
-     * @param $msg
-     * @param $from
+     * @param $request
+     * @param ConnectionInterface $from
      * @param $error
      * @throws WebSocketException
      */
-    function error($msg,ConnectionInterface $from, $error)
+    function error($request,ConnectionInterface $from, $error)
     {
         echo 'Error: ';
         echo $error."\n";
-        print_r($msg);
+        print_r($request);
+        echo " ============================================================== \n \n \n";
+
         $data = [
             'type'=>'error',
             'message'=>$error
@@ -43,6 +46,12 @@ trait WebSocketMessagesManager
      */
     function sendToWebSocketUser(ConnectionInterface $conn,$data)
     {
+        if(!is_array($data))
+            $data = ['msg'=>$data];
+
+        if(isset($this->route) && $this->route->auth && !array_key_exists('sender',$data))
+            $data['sender'] = $this->getSenderData();
+
         $conn->send(json_encode($data));
     }
 
@@ -64,6 +73,18 @@ trait WebSocketMessagesManager
     function sendBack($data)
     {
        $this->sendToWebSocketUser($this->conn,$data);
+    }
+
+    /**
+     *
+     * @return array
+     */
+    function getSenderData()
+    {
+        return [
+            'id' => \Auth::id(),
+            'name'=> \Auth::user()->name
+        ];
     }
 
 }
