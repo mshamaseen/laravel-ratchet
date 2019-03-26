@@ -18,11 +18,6 @@ class Routes
 
     ];
 
-    function mainRoutes()
-    {
-        $this->make('initializeWebsocket','Shamaseen\Laravel\Ratchet\Controllers\InitializeController','index');
-    }
-
     /**
      * @param $routeName
      * @param $controller

@@ -35,7 +35,6 @@ class WebSocketException extends Exception
      */
     public function render($request)
     {
-        echo "yes it is";
         return null;
     }
 }

@@ -9,7 +9,10 @@
 namespace Shamaseen\Laravel\Ratchet\Controllers;
 
 
+use Ratchet\ConnectionInterface;
 use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
+use Shamaseen\Laravel\Ratchet\Objects\Rooms\Room;
+use Shamaseen\Laravel\Ratchet\Receiver;
 use Shamaseen\Laravel\Ratchet\Traits\WebSocketMessagesManager;
 
 /**
@@ -24,9 +27,35 @@ class WebSocketController
      * @var Client[]
      */
     public $clients;
-    private $routes;
+
+    /**
+     * Auth to resourceId mapper
+     * @var array
+     */
     public $userAuthSocketMapper;
+
+    /**
+     * Ratchet ConnectionInterface
+     * @var ConnectionInterface
+     */
     public $conn;
+
+    /**
+     * The main receiver of websocket event, here we can change property for all connection.
+     * @var Receiver
+     */
+    public $receiver;
+
+    /**
+     * The rooms array
+     * @var Room[]
+     */
+    public $rooms;
+
+    /**
+     * @var object
+     */
+    public $request;
 
     public function __construct()
     {

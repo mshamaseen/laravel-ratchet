@@ -28,11 +28,10 @@ class Client
 
     /** @var ConnectionInterface $conn */
     public $conn = null;
-//    public $resourceId = null;
 
     /**
-     * @var null|array
+     * @var array
      */
-    public $rooms = null;
+    public $rooms = [];
 
 }

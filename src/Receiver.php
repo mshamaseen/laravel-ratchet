@@ -1,4 +1,6 @@
 <?php
+/** @noinspection PhpUndefinedFieldInspection */
+
 /**
  * Created by PhpStorm.
  * User: shanmaseen
@@ -8,12 +10,9 @@
 
 namespace Shamaseen\Laravel\Ratchet;
 
-
-use function Composer\Autoload\includeFile;
 use Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException;
 use Shamaseen\Laravel\Ratchet\Facades\WsRoute;
 use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
-use Shamaseen\Laravel\Ratchet\Routes\Routes;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 use Shamaseen\Laravel\Ratchet\Traits\WebSocketMessagesManager;
@@ -32,7 +31,7 @@ class Receiver implements MessageComponentInterface
     public $clients;
     private $routes;
     public $userAuthSocketMapper;
-
+    public $rooms;
 
     /**
      * WebSocket constructor.
@@ -40,11 +39,13 @@ class Receiver implements MessageComponentInterface
     public function __construct()
     {
         $this->clients = [];
+        /**
+         * The key will be auth id, the value will be resourceId
+         */
         $this->userAuthSocketMapper = [];
-        WsRoute::mainRoutes();
 
+        $this->mainRoutes();
         include base_path().'/routes/websocket.php';
-
         $this->routes = WsRoute::getRoutes();
     }
 
@@ -88,6 +89,8 @@ class Receiver implements MessageComponentInterface
             $this->cloneProperties($this,$controller);
 
             $controller->conn = $from;
+            $controller->receiver = $this;
+            $controller->request = $msg;
 
             if(!method_exists($controller,$method))
             {
@@ -107,7 +110,7 @@ class Receiver implements MessageComponentInterface
      */
     public function onClose(ConnectionInterface $conn) {
         // The connection is closed, remove it, as we can no longer send it messages
-        unset($this->clients[$conn]);
+        unset($this->clients[$conn->resourceId]);
 
         echo "Connection {$conn->resourceId} has disconnected\n";
     }
@@ -149,5 +152,10 @@ class Receiver implements MessageComponentInterface
         foreach (get_object_vars($clonedObject) as $key => $value) {
             $clone->$key = $value;
         }
+    }
+
+    function mainRoutes()
+    {
+        WsRoute::make('initializeWebsocket','Shamaseen\Laravel\Ratchet\Controllers\InitializeController','index');
     }
 }

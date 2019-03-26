@@ -30,7 +30,9 @@
     "prefer-stable": true,
 
     "require": {
-        "laravel/framework": "^5.7",
+        "illuminate/session": "^5.7",
+        "illuminate/support": "^5.7",
+        "illuminate/console": "^5.7",
         "cboden/ratchet": "^0.4.1"
     },
     "require-dev": {
