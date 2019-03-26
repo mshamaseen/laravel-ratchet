@@ -33,6 +33,7 @@ class Receiver implements MessageComponentInterface
     private $routes;
     public $userAuthSocketMapper;
 
+
     /**
      * WebSocket constructor.
      */
