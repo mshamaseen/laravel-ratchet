@@ -46,14 +46,15 @@ class Receiver implements MessageComponentInterface
         $this->userAuthSocketMapper = [];
 
         $this->mainRoutes();
-        include base_path().'/routes/websocket.php';
+        include base_path() . '/routes/websocket.php';
         $this->routes = WsRoute::getRoutes();
     }
 
     /**
      * @param ConnectionInterface $conn
      */
-    public function onOpen(ConnectionInterface $conn) {
+    public function onOpen(ConnectionInterface $conn)
+    {
 
         $this->clients[$conn->resourceId] = new Client();
         $this->clients[$conn->resourceId]->conn = $conn;
@@ -67,50 +68,47 @@ class Receiver implements MessageComponentInterface
      * @param string $msg
      * @throws \Exception
      */
-    public function onMessage(ConnectionInterface $from, $msg) {
-        try
-        {
+    public function onMessage(ConnectionInterface $from, $msg)
+    {
+        try {
             $msg = json_decode($msg);
 
-            $this->checkForRequiredInMessage($msg,$from);
+            $this->checkForRequiredInMessage($msg, $from);
 
             \Session::setId($msg->session);
 
             \Session::start();
 
             $route = $this->routes[$msg->route];
-            if($route->auth && !\Auth::check())
-                $this->error($msg,$from,'Unauthenticated.');
-            else
+            if ($route->auth && !\Auth::check()) {
+                $this->error($msg, $from, 'Unauthenticated.');
+            } else {
+                $this->clients[$from->resourceId]->id = \Auth::id();
                 $this->userAuthSocketMapper[\Auth::id()] = $from->resourceId;
+            }
 
             $class = $route->controller;
             $method = $route->method;
             $controller = new $class;
 
-            $this->cloneProperties($this,$controller);
+            $this->cloneProperties($this, $controller);
 
             $controller->conn = $from;
             $controller->receiver = $this;
             $controller->request = $msg;
             $controller->route = $route;
 
-            if(!method_exists($controller,$method))
-            {
-                $this->error($msg,$from,'Method doesnt\'t exist !');
+            if (!method_exists($controller, $method)) {
+                $this->error($msg, $from, 'Method doesnt\'t exist !');
             }
 
             $controller->$method();
-        }
-        catch (WebSocketException $exception)
-        {
+        } catch (WebSocketException $exception) {
 
-        }
-        catch(ValidationException $exception)
-        {
-            $this->sendToWebSocketUser($from,[
-                'message'=>$exception->getMessage(),
-                'errors'=> $exception->errors()
+        } catch (ValidationException $exception) {
+            $this->sendToWebSocketUser($from, [
+                'message' => $exception->getMessage(),
+                'errors' => $exception->errors()
             ]);
         }
     }
@@ -118,7 +116,8 @@ class Receiver implements MessageComponentInterface
     /**
      * @param ConnectionInterface $conn
      */
-    public function onClose(ConnectionInterface $conn) {
+    public function onClose(ConnectionInterface $conn)
+    {
         // The connection is closed, remove it, as we can no longer send it messages
         unset($this->clients[$conn->resourceId]);
 
@@ -127,11 +126,12 @@ class Receiver implements MessageComponentInterface
 
     /**
      * @param ConnectionInterface $conn
-     * @param \Exception $e
+     * @param \Exception $exception
      */
-    public function onError(ConnectionInterface $conn, \Exception $e) {
-        echo "An error has occurred: {$e->getMessage()}\n";
-        echo "In {$e->getFile()} line {$e->getLine()}\n";
+    public function onError(ConnectionInterface $conn, \Exception $exception)
+    {
+        echo "An error has occurred: {$exception->getMessage()}\n";
+        echo "In {$exception->getFile()} line {$exception->getLine()}\n";
 
         $conn->close();
         echo 'end';
@@ -143,15 +143,15 @@ class Receiver implements MessageComponentInterface
      * @param $from
      * @throws WebSocketException
      */
-    function checkForRequiredInMessage($msg,$from)
+    function checkForRequiredInMessage($msg, $from)
     {
-        if(!isset($msg->route) || !isset($msg->session))
-        {
-            $this->error($msg,$from,'You can\'t send a request without the route and the session id !');
+        if (!isset($msg->route) || !isset($msg->session)) {
+            $this->error($msg, $from, 'You can\'t send a request without the route and the session id !');
         }
 
-        if(!isset($this->routes[$msg->route]))
-            $this->error($msg,$from,'No such route !');
+        if (!isset($this->routes[$msg->route])) {
+            $this->error($msg, $from, 'No such route !');
+        }
     }
 
     /**
@@ -167,10 +167,10 @@ class Receiver implements MessageComponentInterface
 
     function mainRoutes()
     {
-        WsRoute::make('initializeWebsocket','Shamaseen\Laravel\Ratchet\Controllers\InitializeController','index');
-        WsRoute::make('room-enter','Shamaseen\Laravel\Ratchet\Controllers\RoomController','enterRoom');
-        WsRoute::make('room-exit','Shamaseen\Laravel\Ratchet\Controllers\RoomController','exitRoom');
-        WsRoute::make('send-to-user','Shamaseen\Laravel\Ratchet\Controllers\ChatController','sendMessageToUser');
-        WsRoute::make('send-to-room','Shamaseen\Laravel\Ratchet\Controllers\ChatController','sendMessageToRoom');
+        WsRoute::make('initializeWebsocket', 'Shamaseen\Laravel\Ratchet\Controllers\InitializeController', 'index');
+        WsRoute::make('room-enter', 'Shamaseen\Laravel\Ratchet\Controllers\RoomController', 'enterRoom');
+        WsRoute::make('room-exit', 'Shamaseen\Laravel\Ratchet\Controllers\RoomController', 'exitRoom');
+        WsRoute::make('send-to-user', 'Shamaseen\Laravel\Ratchet\Controllers\ChatController', 'sendMessageToUser');
+        WsRoute::make('send-to-room', 'Shamaseen\Laravel\Ratchet\Controllers\ChatController', 'sendMessageToRoom');
     }
 }

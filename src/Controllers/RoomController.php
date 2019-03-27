@@ -16,20 +16,31 @@ class RoomController extends WebSocketController
     use RoomUtility;
 
     /**
-     * @param $room_id
+     * @throws \Illuminate\Validation\ValidationException
      */
-    function enterRoom($room_id)
+    function enterRoom()
     {
+        $this->validate($this->request,[
+            'room_id'=>'required'
+        ]);
+        $room_id =$this->request->room_id;
+
         $this->validateRoom($room_id,true);
 
         $this->addMember($room_id);
     }
 
     /**
-     * @param $room_id
+     * @throws \Illuminate\Validation\ValidationException
      */
-    function exitRoom($room_id)
+    function exitRoom()
     {
+
+        $this->validate($this->request,[
+            'room_id'=>'required'
+        ]);
+        $room_id =$this->request->room_id;
+
         $this->validateRoom($room_id);
 
         $this->removeMember($room_id);

@@ -20,11 +20,9 @@ class Client
 {
     /**
      * this id is the laravel auth id
-     * @var null $id
+     * @var null|int $id
      */
     public $id = null;
-    public $name = null;
-    public $hash = null;
 
     /** @var ConnectionInterface $conn */
     public $conn = null;
