@@ -12,6 +12,7 @@ use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
 use Shamaseen\Laravel\Ratchet\Objects\Rooms\Room;
 
 /**
+ * ###### Use this trait ONLY in classes extend WebSocketController ######
  * Trait RoomUtility
  * @package Shamaseen\Laravel\Ratchet\Traits
  * @property-read $receiver

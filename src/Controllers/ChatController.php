@@ -24,6 +24,7 @@ class ChatController extends WebSocketController
             'user_id'=>'required',
             'message' => 'required'
         ]);
+
         $user_id = $this->request->user_id;
         $message = $this->request->message;
 

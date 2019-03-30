@@ -140,7 +140,7 @@ class Receiver implements MessageComponentInterface
 
     /**
      * @param $msg
-     * @param $from
+     * @param ConnectionInterface $from
      * @throws WebSocketException
      */
     function checkForRequiredInMessage($msg, $from)
@@ -155,7 +155,7 @@ class Receiver implements MessageComponentInterface
     }
 
     /**
-     * @param $clonedObject
+     * @param Receiver $clonedObject
      * @param $clone
      */
     function cloneProperties($clonedObject, $clone)
