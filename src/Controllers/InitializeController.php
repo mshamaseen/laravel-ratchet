@@ -18,6 +18,6 @@ class InitializeController extends WebSocketController
     function index()
     {
         echo 'Initializing ..';
-        $this->sendBack(['message'=>'Initialized']);
+        $this->sendBack(['message'=>'WebSocket Initialized','event'=>'initialize']);
     }
 }

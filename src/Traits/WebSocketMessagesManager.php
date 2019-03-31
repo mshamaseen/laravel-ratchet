@@ -27,13 +27,16 @@ trait WebSocketMessagesManager
      */
     function error($request,ConnectionInterface $from, $error)
     {
-        echo 'Error: ';
-        echo $error."\n";
-        print_r($request);
-        echo " ============================================================== \n \n \n";
+        if(env('APP_DEBUG'))
+        {
+            echo 'User error: ';
+            echo $error."\n";
+            print_r($request);
+            echo " ============================================================== \n \n \n";
+        }
 
         $data = [
-            'type'=>'error',
+            'event'=>'error',
             'message'=>$error
         ];
         $this->sendToWebSocketUser($from,$data);
@@ -47,7 +50,12 @@ trait WebSocketMessagesManager
     function sendToWebSocketUser(ConnectionInterface $conn,$data)
     {
         if(!is_array($data))
-            $data = ['msg'=>$data];
+            $data = ['msg'=>$data,'event'=>'default'];
+
+        if(!isset($data['event']))
+        {
+            $data['event'] = 'default';
+        }
 
         if(isset($this->route) && $this->route->auth && !array_key_exists('sender',$data))
             $data['sender'] = $this->getSenderData();
