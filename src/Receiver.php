@@ -75,9 +75,12 @@ class Receiver implements MessageComponentInterface
 
             $this->checkForRequiredInMessage($msg, $from);
 
-            \Session::setId($msg->session);
+            if(isset($msg->session))
+            {
+                \Session::setId($msg->session);
 
-            \Session::start();
+                \Session::start();
+            }
 
             $route = $this->routes[$msg->route];
             if ($route->auth && !\Auth::check()) {

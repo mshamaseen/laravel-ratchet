@@ -27,7 +27,7 @@ class LaravelRatchetServiceProvider extends ServiceProvider
 
         $this->publishes([
             __DIR__.'/config' => realpath('config'),
-            __DIR__.'/Routes/websocket' => realpath('routes'),
+            __DIR__.'/Routes/published' => realpath('routes'),
         ],'laravel-ratchet');
 
         if ($this->app['config']->get('laravel-ratchet') === null) {
