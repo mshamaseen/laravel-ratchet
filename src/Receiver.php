@@ -10,6 +10,7 @@
 
 namespace Shamaseen\Laravel\Ratchet;
 
+use App\Entities\User\User;
 use Illuminate\Validation\ValidationException;
 use Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException;
 use Shamaseen\Laravel\Ratchet\Facades\WsRoute;
@@ -55,12 +56,8 @@ class Receiver implements MessageComponentInterface
      */
     public function onOpen(ConnectionInterface $conn)
     {
-
         $this->clients[$conn->resourceId] = new Client();
         $this->clients[$conn->resourceId]->conn = $conn;
-//        $this->clients[$conn->resourceId]->resourceId = $conn->resourceId;
-
-        echo "New connection! ({$conn->resourceId})\n";
     }
 
     /**
@@ -75,20 +72,11 @@ class Receiver implements MessageComponentInterface
 
             $this->checkForRequiredInMessage($msg, $from);
 
-            if(isset($msg->session))
-            {
-                \Session::setId($msg->session);
+            $this->resetSession($msg->session);
 
-                \Session::start();
-            }
+            $this->resetAuth($msg,$from);
 
             $route = $this->routes[$msg->route];
-            if ($route->auth && !\Auth::check()) {
-                $this->error($msg, $from, 'Unauthenticated.');
-            } else {
-                $this->clients[$from->resourceId]->id = \Auth::id();
-                $this->userAuthSocketMapper[\Auth::id()] = $from->resourceId;
-            }
 
             $class = $route->controller;
             $method = $route->method;
@@ -106,6 +94,8 @@ class Receiver implements MessageComponentInterface
             }
 
             $controller->$method();
+
+            \Session::save();
         } catch (WebSocketException $exception) {
 
         } catch (ValidationException $exception) {
@@ -149,7 +139,7 @@ class Receiver implements MessageComponentInterface
     function checkForRequiredInMessage($msg, $from)
     {
         if (!isset($msg->route) || !isset($msg->session)) {
-            $this->error($msg, $from, 'You can\'t send a request without the route and the session id !');
+            $this->error($msg, $from, 'You can\'t send a request without route !');
         }
 
         if (!isset($this->routes[$msg->route])) {
@@ -175,5 +165,73 @@ class Receiver implements MessageComponentInterface
         WsRoute::make('room-exit', 'Shamaseen\Laravel\Ratchet\Controllers\RoomController', 'exitRoom');
         WsRoute::make('send-to-user', 'Shamaseen\Laravel\Ratchet\Controllers\ChatController', 'sendMessageToUser');
         WsRoute::make('send-to-room', 'Shamaseen\Laravel\Ratchet\Controllers\ChatController', 'sendMessageToRoom');
+    }
+
+    /**
+     * Read the session data from the handler.
+     *
+     * @param $session_id
+     * @return array
+     */
+    protected function readFromHandler($session_id)
+    {
+        if ($data = \Session::getHandler()->read($session_id)) {
+            $data = @unserialize($data);
+
+            if ($data !== false && ! is_null($data) && is_array($data)) {
+                return $data;
+            }
+        }
+
+        return [];
+    }
+
+    function getUserId($session_array)
+    {
+        return $session_array['login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d'];
+    }
+
+    function getUserModel()
+    {
+        return User::class;
+    }
+
+    function resetSession($session_id)
+    {
+        \Session::flush();
+
+        \Session::setId($session_id);
+
+        \Session::start();
+    }
+
+    /**
+     * @param object $msg
+     * @param ConnectionInterface $from
+     * @throws WebSocketException
+     */
+    function resetAuth($msg,$from)
+    {
+        $data = $this->readFromHandler($msg->session);
+
+        if(!empty($data))
+        {
+            $user_id = $this->getUserId($data);
+            /** @var User $user_model */
+            $user_model = $this->getUserModel();
+            $user = $user_model::find($user_id);
+            if(!$user)
+            {
+                $this->error($msg, $from, 'There is no such user.');
+            }
+            \Auth::setUser($user);
+
+            $this->clients[$from->resourceId]->id = \Auth::id();
+            $this->userAuthSocketMapper[\Auth::id()] = $from->resourceId;
+        }
+        else
+        {
+            $this->error($msg, $from, 'Unauthenticated.');
+        }
     }
 }

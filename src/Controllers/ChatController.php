@@ -26,7 +26,7 @@ class ChatController extends WebSocketController
         ]);
 
         $user_id = $this->request->user_id;
-        $data = ['message'=>$this->request->message,'event'=>'sendToUser'];
+        $data = ['message'=>$this->request->message,'event'=>'receivedMessage'];
 
         $this->sendToUser($user_id,$data);
     }
@@ -41,7 +41,7 @@ class ChatController extends WebSocketController
             'message' => 'required'
         ]);
         $room_id = $this->request->room_id;
-        $data = ['message'=>$this->request->message,'event'=>'sendToRoom'];
+        $data = ['message'=>$this->request->message,'event'=>'RoomMessage'];
         $this->sendToRoom($room_id,$data);
     }
 }

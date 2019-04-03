@@ -57,7 +57,7 @@ trait WebSocketMessagesManager
             $data['event'] = 'default';
         }
 
-        if(isset($this->route) && $this->route->auth && !array_key_exists('sender',$data))
+        if(isset($this->route) && !array_key_exists('sender',$data))
             $data['sender'] = $this->getSenderData();
 
         $conn->send(json_encode($data));
@@ -66,9 +66,15 @@ trait WebSocketMessagesManager
     /**
      * @param int $user_id
      * @param array $data
+     * @throws WebSocketException
      */
     function sendToUser($user_id,$data)
     {
+        if(!array_key_exists($user_id,$this->userAuthSocketMapper))
+        {
+            $this->error($this->request,$this->conn,'No such user !');
+        }
+
         $resourceId = $this->userAuthSocketMapper[$user_id];
         /** @var ConnectionInterface $conn */
         $conn = $this->clients[$resourceId]->conn;

@@ -22,14 +22,13 @@ class Routes
      * @param $routeName
      * @param $controller
      * @param $method
-     * @param bool $authenticated
      */
-    function make($routeName, $controller, $method,$authenticated = true)
+    function make($routeName, $controller, $method)
     {
         $this->routes[$routeName] = (object) [
             'controller'=>$controller,
             'method'=>$method,
-            'auth'=> $authenticated
+//            'auth'=> $authenticated
         ];
     }
 
