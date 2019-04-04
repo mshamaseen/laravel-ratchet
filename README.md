@@ -36,6 +36,12 @@ php artisan vendor:publish --tag=laravel-ratchet
 ```
 
 # Usage
+To run the websocket, run the following command:
+
+```bash
+php artisan run:websocket
+```
+Note: The default listening port is 8080, If you want to listen on another port just add `CHAT_PORT={PORT_NUMBER}` to your `.env` file.
 
 #### Routes
 After publishing the package, you will find websocket file in routes path, here you can define routes for websocket.
