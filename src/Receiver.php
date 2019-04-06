@@ -139,7 +139,7 @@ class Receiver implements MessageComponentInterface
     function checkForRequiredInMessage($msg, $from)
     {
         if (!isset($msg->route) || !isset($msg->session)) {
-            $this->error($msg, $from, 'You can\'t send a request without route !');
+            $this->error($msg, $from, 'Either the route is missing in the Request, Or you forget to add the session id ! please refer to the document in github for more details');
         }
 
         if (!isset($this->routes[$msg->route])) {
