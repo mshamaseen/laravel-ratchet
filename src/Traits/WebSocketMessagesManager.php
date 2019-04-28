@@ -11,7 +11,6 @@ namespace Shamaseen\Laravel\Ratchet\Traits;
 
 use Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException;
 use Ratchet\ConnectionInterface;
-use Shamaseen\Laravel\Ratchet\Objects\Rooms\Room;
 
 /**
  * Trait WebSocketMessagesManager
@@ -66,19 +65,20 @@ trait WebSocketMessagesManager
     /**
      * @param int $user_id
      * @param array $data
-     * @throws WebSocketException
+     * @return bool
      */
     function sendToUser($user_id,$data)
     {
-        if(!array_key_exists($user_id,$this->userAuthSocketMapper))
+        if(!$this->isOnline($user_id))
         {
-            $this->error($this->request,$this->conn,'No such user !');
+            return false;
         }
 
         $resourceId = $this->userAuthSocketMapper[$user_id];
         /** @var ConnectionInterface $conn */
         $conn = $this->clients[$resourceId]->conn;
         $this->sendToWebSocketUser($conn,$data);
+        return true;
     }
 
     /**
@@ -99,6 +99,16 @@ trait WebSocketMessagesManager
             'id' => \Auth::id(),
             'name'=> \Auth::user()->name
         ];
+    }
+
+    function isOnline($user_id)
+    {
+        if(array_key_exists($user_id,$this->userAuthSocketMapper))
+        {
+            return true;
+        }
+
+        return false;
     }
 
 }

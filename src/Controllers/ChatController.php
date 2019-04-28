@@ -15,6 +15,7 @@ class ChatController extends WebSocketController
 {
 
     use RoomUtility;
+
     /**
      * @throws \Illuminate\Validation\ValidationException
      */

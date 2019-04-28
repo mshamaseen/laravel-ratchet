@@ -120,6 +120,7 @@ class Receiver implements MessageComponentInterface
     /**
      * @param ConnectionInterface $conn
      * @param \Exception $exception
+     * @return null
      */
     public function onError(ConnectionInterface $conn, \Exception $exception)
     {
@@ -127,8 +128,7 @@ class Receiver implements MessageComponentInterface
         echo "In {$exception->getFile()} line {$exception->getLine()}\n";
 
         $conn->close();
-        echo 'end';
-        die;
+        return null;
     }
 
     /**
