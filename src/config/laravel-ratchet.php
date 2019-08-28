@@ -7,5 +7,5 @@
  */
 
 return [
-
+    'userModelNamespace' => 'App\Entities\Users\User'
 ];

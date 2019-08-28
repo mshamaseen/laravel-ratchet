@@ -193,7 +193,7 @@ class Receiver implements MessageComponentInterface
 
     function getUserModel()
     {
-        return User::class;
+        return \Config::get('laravel-ratchet.userModelNamespace','App\Entities\Users\User');
     }
 
     function resetSession($session_id)
@@ -217,9 +217,7 @@ class Receiver implements MessageComponentInterface
         if(!empty($data))
         {
             $user_id = $this->getUserId($data);
-            /** @var User $user_model */
-            $user_model = $this->getUserModel();
-            $user = $user_model::find($user_id);
+            $user = $this->getUserModel()::find($user_id);
             if(!$user)
             {
                 $this->error($msg, $from, 'There is no such user.');
