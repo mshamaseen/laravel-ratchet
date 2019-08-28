@@ -79,7 +79,8 @@ If you want to deal with rooms, you can use RoomUtility trait in your controller
 Use `$this->validate()` the same way you use it with laravel !
 
 #Server configuration
-If you want to connect the websocket to a HTTPS website, you need to add these lines to nginx host configuration:
+If you want to connect the websocket to a HTTPS website,
+ you should use `wss` instead of `ws` when making an instance from shama class, and you need to add these lines to nginx host configuration:
 ```
 location /wss2 {
  
