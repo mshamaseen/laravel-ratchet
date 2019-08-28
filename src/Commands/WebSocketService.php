@@ -53,7 +53,7 @@ class WebSocketService extends Command
                     new Receiver()
                 )
             ),
-            env('CHAT_PORT',8080)
+            env('WEBSOCKET_PORT',9090)
         );
 
         $server->run();

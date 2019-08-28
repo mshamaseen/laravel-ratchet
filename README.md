@@ -41,7 +41,7 @@ To run the websocket, run the following command:
 ```bash
 php artisan run:websocket
 ```
-Note: The default listening port is 8080, If you want to listen on another port just add `CHAT_PORT={PORT_NUMBER}` to your `.env` file.
+Note: The default listening port is 8080, If you want to listen on another port just add `WEBSOCKET_PORT={PORT_NUMBER}` to your `.env` file.
 
 #### Routes
 After publishing the package, you will find websocket file in routes path, here you can define routes for websocket.
@@ -78,3 +78,28 @@ If you want to deal with rooms, you can use RoomUtility trait in your controller
 #### Validation
 Use `$this->validate()` the same way you use it with laravel !
 
+#Server configuration
+If you want to connect the websocket to a HTTPS website, you need to add these lines to nginx host configuration:
+```
+location /wss2 {
+ 
+         # prevents 502 bad gateway error
+         proxy_buffers 8 32k;
+         proxy_buffer_size 64k;
+ 
+         # redirect all HTTP traffic to localhost:8088;
+         proxy_pass http://0.0.0.0:9090;
+         proxy_set_header X-Real-IP $remote_addr;
+         proxy_set_header Host $http_host;
+         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         #proxy_set_header X-NginX-Proxy true;
+ 
+         # enables WS support
+         proxy_http_version 1.1;
+         proxy_set_header Upgrade $http_upgrade;
+         proxy_set_header Connection $connection_upgrade;
+ 
+        proxy_read_timeout 999999999;
+ 
+ }
+```
