@@ -71,7 +71,7 @@ Ratchet connection Interface
 If you want to cut the request and stop the process just call error function.
 
 * sendToUser($user_id,$data)
-To send a message to a usesr
+To send a message to a user
 
 If you want to deal with rooms, you can use RoomUtility trait in your controller to have access to rooms manipulation pre-defined functions. 
 
@@ -88,12 +88,11 @@ location /wss2 {
          proxy_buffers 8 32k;
          proxy_buffer_size 64k;
  
-         # redirect all HTTP traffic to localhost:8088;
+         # redirect all HTTP traffic to localhost:9090;
          proxy_pass http://0.0.0.0:9090;
          proxy_set_header X-Real-IP $remote_addr;
          proxy_set_header Host $http_host;
          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-         #proxy_set_header X-NginX-Proxy true;
  
          # enables WS support
          proxy_http_version 1.1;
