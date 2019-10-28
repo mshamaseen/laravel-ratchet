@@ -56,6 +56,7 @@ class WebSocketService extends Command
             env('WEBSOCKET_PORT',9090)
         );
 
+        $this->info('Websocket is now running at port '.env('WEBSOCKET_PORT',9090));
         $server->run();
     }
 }
