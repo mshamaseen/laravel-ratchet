@@ -10,13 +10,13 @@
 
 namespace Shamaseen\Laravel\Ratchet;
 
-use App\Entities\User\User;
 use Illuminate\Validation\ValidationException;
 use Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException;
 use Shamaseen\Laravel\Ratchet\Facades\WsRoute;
 use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
+use Shamaseen\Laravel\Ratchet\Requests\WsRequest;
 use Shamaseen\Laravel\Ratchet\Traits\WebSocketMessagesManager;
 
 /**
@@ -68,15 +68,15 @@ class Receiver implements MessageComponentInterface
     public function onMessage(ConnectionInterface $from, $msg)
     {
         try {
-            $msg = json_decode($msg);
+            $msg = json_decode($msg,true);
 
             $this->checkForRequiredInMessage($msg, $from);
 
-            $this->resetSession($msg->session);
+            $this->resetSession($msg['session']);
 
             $this->resetAuth($msg,$from);
 
-            $route = $this->routes[$msg->route];
+            $route = $this->routes[$msg['route']];
 
             $class = $route->controller;
             $method = $route->method;
@@ -86,11 +86,12 @@ class Receiver implements MessageComponentInterface
 
             $controller->conn = $from;
             $controller->receiver = $this;
-            $controller->request = $msg;
+
+            $controller->request = new WsRequest($msg);
             $controller->route = $route;
 
             if (!method_exists($controller, $method)) {
-                $this->error($msg, $from, 'Method doesnt\'t exist !');
+                $this->error($msg, $from, 'Method '.$method.' doesnt\'t exist !');
             }
 
             $controller->$method();
@@ -126,6 +127,7 @@ class Receiver implements MessageComponentInterface
     {
         echo "An error has occurred: {$exception->getMessage()}\n";
         echo "In {$exception->getFile()} line {$exception->getLine()}\n";
+        echo $exception->getTraceAsString();
 
         $conn->close();
         return null;
@@ -138,11 +140,11 @@ class Receiver implements MessageComponentInterface
      */
     function checkForRequiredInMessage($msg, $from)
     {
-        if (!isset($msg->route) || !isset($msg->session)) {
+        if (!isset($msg['route']) || !isset($msg['session'])) {
             $this->error($msg, $from, 'Either the route is missing in the Request, Or you forget to add the session id ! please refer to the document in github for more details');
         }
 
-        if (!isset($this->routes[$msg->route])) {
+        if (!isset($this->routes[$msg['route']])) {
             $this->error($msg, $from, 'No such route !');
         }
     }
@@ -212,7 +214,7 @@ class Receiver implements MessageComponentInterface
      */
     function resetAuth($msg,$from)
     {
-        $data = $this->readFromHandler($msg->session);
+        $data = $this->readFromHandler($msg['session']);
 
         if(!empty($data))
         {

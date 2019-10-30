@@ -9,6 +9,7 @@
 namespace Shamaseen\Laravel\Ratchet\Traits;
 
 use Illuminate\Contracts\Validation\Factory;
+use Illuminate\Support\Collection;
 
 trait Validation
 {
@@ -49,6 +50,9 @@ trait Validation
     public function validate($request, array $rules,
                              array $messages = [], array $customAttributes = [])
     {
+        if($request instanceof Collection)
+            $request = $request->toArray();
+
         return $this->getValidationFactory()->make(
             (array) $request, $rules, $messages, $customAttributes
         )->validate();

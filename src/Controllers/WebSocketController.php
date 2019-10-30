@@ -9,6 +9,7 @@
 namespace Shamaseen\Laravel\Ratchet\Controllers;
 
 
+use Illuminate\Support\Collection;
 use Ratchet\ConnectionInterface;
 use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
 use Shamaseen\Laravel\Ratchet\Objects\Rooms\Room;
@@ -54,7 +55,7 @@ class WebSocketController
     public $rooms;
 
     /**
-     * @var object
+     * @var Collection
      */
     public $request;
 

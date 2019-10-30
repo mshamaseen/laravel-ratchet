@@ -28,6 +28,7 @@ class Routes
         $this->routes[$routeName] = (object) [
             'controller'=>$controller,
             'method'=>$method,
+            'route'=>$routeName,
 //            'auth'=> $authenticated
         ];
     }
