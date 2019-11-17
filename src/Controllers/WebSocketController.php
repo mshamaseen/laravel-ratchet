@@ -68,4 +68,13 @@ class WebSocketController
     {
 
     }
+
+    /**
+     * @desc return the client class
+     * @return Client
+     */
+    function getClient()
+    {
+        return $this->clients[$this->conn->resourceId];
+    }
 }

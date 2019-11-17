@@ -78,10 +78,27 @@ If you want to deal with rooms, you can use RoomUtility trait in your controller
 #### Validation
 Use `$this->validate()` the same way you use it with laravel !
 
-#Server configuration
+# Close Connection callback
+Some time you need to run a method when a user close his connection, i.e when the user close his browser, close the website tab, or even get out from the current page.
+To do so you can assign an `OnClose` route to be called by calling `onClose` function from inside your you controller:
+
+``
+$this->getClient()->onClose('your route here');
+``
+
+then your route will be triggered whenever the user close the connection.
+
+
+# Server configuration
 If you want to connect the websocket to a HTTPS website,
  you should use `wss` instead of `ws` when making an instance from shama class, and you need to add these lines to nginx host configuration:
 ```
+map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
+
 location /wss2 {
  
          # prevents 502 bad gateway error

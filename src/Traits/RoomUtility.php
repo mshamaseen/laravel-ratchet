@@ -24,6 +24,13 @@ use Shamaseen\Laravel\Ratchet\Objects\Rooms\Room;
  */
 trait RoomUtility
 {
+
+    function createRoom($room_id)
+    {
+        $this->receiver->rooms[$room_id] = new \Shamaseen\Laravel\Ratchet\Objects\Rooms\Room($room_id);
+        return $this;
+    }
+
     function addMember($room_id)
     {
         /** @var Room $room */
@@ -32,11 +39,14 @@ trait RoomUtility
         $client = $this->receiver->clients[$this->userAuthSocketMapper[\Auth::id()]];
         $room->addMember($client);
         array_push($client->rooms, $room_id);
+
+        return $this;
     }
 
     /**
      * This function will automatically remove the room if no member still on it.
      * @param $room_id
+     * @return RoomUtility
      */
     function removeMember($room_id)
     {
@@ -51,6 +61,7 @@ trait RoomUtility
             unset($this->receiver->rooms[$room_id]);
         }
 
+        return $this;
     }
 
     /**

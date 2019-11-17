@@ -67,9 +67,13 @@ class Receiver implements MessageComponentInterface
      */
     public function onMessage(ConnectionInterface $from, $msg)
     {
-        try {
-            $msg = json_decode($msg,true);
+        $msg = json_decode($msg,true);
+        $this->callRoute($from,$msg);
+    }
 
+    function callRoute(ConnectionInterface $from, $msg)
+    {
+        try {
             $this->checkForRequiredInMessage($msg, $from);
 
             $this->resetSession($msg['session']);
@@ -113,7 +117,16 @@ class Receiver implements MessageComponentInterface
     public function onClose(ConnectionInterface $conn)
     {
         // The connection is closed, remove it, as we can no longer send it messages
+        $client = $this->clients[$conn->resourceId];
+        $routesToCall = $client->onCloseRoutes;
+        foreach ($routesToCall as $route)
+        {
+            $msg = ['session'=>$client->session,'route'=>$route];
+            $this->callRoute($conn,$msg);
+        }
+
         unset($this->clients[$conn->resourceId]);
+        unset($this->userAuthSocketMapper[array_search($conn->resourceId,$this->userAuthSocketMapper)]);
 
         echo "Connection {$conn->resourceId} has disconnected\n";
     }
@@ -227,6 +240,7 @@ class Receiver implements MessageComponentInterface
             \Auth::setUser($user);
 
             $this->clients[$from->resourceId]->id = \Auth::id();
+            $this->clients[$from->resourceId]->session = $msg['session'];
             $this->userAuthSocketMapper[\Auth::id()] = $from->resourceId;
         }
         else

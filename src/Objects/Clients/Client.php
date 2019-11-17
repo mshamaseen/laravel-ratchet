@@ -10,6 +10,7 @@ namespace Shamaseen\Laravel\Ratchet\Objects\Clients;
 
 
 use Ratchet\ConnectionInterface;
+use Shamaseen\Laravel\Ratchet\Traits\WebSocketMessagesManager;
 
 /**
  * this class represent ratchet client
@@ -18,6 +19,8 @@ use Ratchet\ConnectionInterface;
  */
 class Client
 {
+
+    use WebSocketMessagesManager;
     /**
      * this id is the laravel auth id
      * @var null|int $id
@@ -32,4 +35,18 @@ class Client
      */
     public $rooms = [];
 
+    public $onCloseRoutes = [];
+
+    public $session = null;
+
+    /**
+     * @param string $route
+     * @return Client
+     */
+    function onClose(string $route)
+    {
+       array_push($this->onCloseRoutes,$route);
+
+        return $this;
+    }
 }
