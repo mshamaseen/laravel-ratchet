@@ -85,11 +85,6 @@ build:
   nodes:
     analysis:
       dependencies:
-        before:
-          - sudo apt-get install -y software-properties-common
-          - sudo apt-add-repository ppa:ondrej/php
-          - sudo apt-get update -y
-          - sudo apt install php php-cli php-json php-common -y
         after:
           - composer require --dev squizlabs/php_codesniffer
 
