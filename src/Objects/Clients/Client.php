@@ -49,4 +49,11 @@ class Client
 
         return $this;
     }
+
+    function removeOnCloseRoute(string $route)
+    {
+        if (($key = array_search($route, $this->onCloseRoutes)) !== false) {
+            unset($this->onCloseRoutes[$key]);
+        }
+    }
 }
