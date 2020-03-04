@@ -40,6 +40,12 @@ class Client
     public $session = null;
 
     /**
+     * @description A custom attributes which the user can use to add attributes about this client, it work only until the client close his connection
+     * @var array
+     */
+    public $customAttributes = [];
+
+    /**
      * @param string $route
      * @return Client
      */
