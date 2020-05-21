@@ -30,6 +30,8 @@
     "prefer-stable": true,
 
     "require": {
+        "ext-zmq": "*",
+        "ext-dom": "*",
         "illuminate/session": ">5.7",
         "illuminate/support": ">5.7",
         "illuminate/console": ">5.7",
