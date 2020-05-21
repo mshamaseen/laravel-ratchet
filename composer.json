@@ -34,6 +34,7 @@
         "illuminate/support": ">5.7",
         "illuminate/console": ">5.7",
         "illuminate/validation": ">5.7",
+        "react/zmq": "^0.4.0",
         "cboden/ratchet": ">0.4.1"
     },
     "require-dev": {

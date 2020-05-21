@@ -18,6 +18,8 @@ use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 use Shamaseen\Laravel\Ratchet\Requests\WsRequest;
 use Shamaseen\Laravel\Ratchet\Traits\WebSocketMessagesManager;
+use ZMQ;
+use ZMQContext;
 
 /**
  * Class WebSocket
@@ -49,6 +51,49 @@ class Receiver implements MessageComponentInterface
         $this->mainRoutes();
         include base_path() . '/routes/websocket.php';
         $this->routes = WsRoute::getRoutes();
+    }
+//
+//    function externalRequest($data)
+//    {
+//        $context = new ZMQContext();
+//        $socket = $context->getSocket(ZMQ::SOCKET_REP, 'my pusher');
+//        $socket->connect("tcp://localhost:".env('ZMQ_PORT',5555));
+//        $socket->send('true');
+//
+////        $context = new ZMQContext();
+////        $socket = $context->getSocket(ZMQ::SOCKET_PUSH, 'my pusher');
+////        $socket->connect("tcp://localhost:5555");
+////        $socket->send('this is a data');
+//
+////        $this->sendBack(["received"]);
+//    }
+
+    /**
+     * @description this function is used to manipulate receiver instance from external php script using zmq
+     * @param string $data
+     * @throws WebSocketException
+     * @throws \ZMQSocketException
+     */
+    public function externalRequest($data)
+    {
+        $data = json_decode($data,true);
+
+        $method = $data['method'];
+
+        if(method_exists($this,$method))
+        {
+            $result = call_user_func_array(array($this, $method),$data['args']);
+            if($result !== null)
+            {
+                $context = new ZMQContext();
+                $socket = $context->getSocket(ZMQ::SOCKET_REP,'my pusher');
+                $socket->connect("tcp://localhost:".env('ZMQ_PORT',5555));
+                $socket->send($result ? 1 : 0);
+            }
+        }
+        else{
+            throw new WebSocketException();
+        }
     }
 
     /**

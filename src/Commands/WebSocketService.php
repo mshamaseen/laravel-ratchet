@@ -2,11 +2,15 @@
 
 namespace Shamaseen\Laravel\Ratchet\Commands;
 
+use React\EventLoop\Factory;
+use React\Socket\Server;
+use React\ZMQ\Context;
 use Shamaseen\Laravel\Ratchet\Receiver;
 use Illuminate\Console\Command;
 use Ratchet\Http\HttpServer;
 use Ratchet\Server\IoServer;
 use Ratchet\WebSocket\WsServer;
+use ZMQ;
 
 
 /**
@@ -41,20 +45,31 @@ class WebSocketService extends Command
 
     /**
      * Execute the console command.
+     * @throws
      */
     public function handle()
     {
+        $loop   = Factory::create();
+        $pusher = new Receiver;
 
-        $server = IoServer::factory(
+        // Listen for the web server to make a ZeroMQ push after an ajax request
+        $context = new Context($loop);
+        $pull = $context->getSocket(ZMQ::SOCKET_REP,'my pusher');
+        $pull->bind('tcp://127.0.0.1:'.env('ZMQ_PORT',5555)); // Binding to 127.0.0.1 means the only client that can connect is itself
+        $pull->on('message', array($pusher, 'externalRequest'));
+
+        // Set up our WebSocket server for clients wanting real-time updates
+        $webSock = new Server('0.0.0.0:'.env('WEBSOCKET_PORT',9090), $loop); // Binding to 0.0.0.0 means remotes can connect
+        new IoServer(
             new HttpServer(
                 new WsServer(
-                    new Receiver()
+                    $pusher
                 )
             ),
-            env('WEBSOCKET_PORT',9090)
+            $webSock
         );
 
         $this->info('Websocket is now running at port '.env('WEBSOCKET_PORT',9090));
-        $server->run();
+        $loop->run();
     }
 }

@@ -18,18 +18,24 @@ Use controllers the way you use it !.
 
 For **front-end**, you can use [laravel-ratchet-js](https://github.com/mshamaseen/laravel-ratchet-js).
 # Installation
-1. Run the following command in the application path:
+
+1. You need to install and enable `zmq` for php
+```bash
+sudo apt install php-zmq
+```
+
+2. Run the following command in the application path:
 ```bash
 composer require shamaseen/laravel-ratchet
 ```
 
-2. Publish websocket routes and configuration. \
+3. Publish websocket routes and configuration. \
 run vendor publish command:
 ```bash
 php artisan vendor:publish --tag=laravel-ratchet
 ```
 
-3. In `config/app.php` and add the following to the `aliases` array:
+4. In `config/app.php` and add the following to the `aliases` array:
 
 ```php
 'WsRoute' => \Shamaseen\Laravel\Ratchet\Facades\WsRoute::class,
@@ -89,15 +95,33 @@ $this->getClient()->onClose('your route here');
 then your route will be triggered whenever the user close the connection.
 
 
+#Accessing the websocket from Laravel files (out of WebSocket controllers)
+
+###Sending data to a user 
+If you want to send data to a user from outside of Websocket controller (i.e from Laravel controller or laravel Job), just use Websocket static functions, like this:
+```php
+\Shamaseen\Laravel\Ratchet\Externals\WebSocket::sendToUser($user_id,array $data))
+```
+
+Easy as it is.
+
+###Check if a user is online
+```php
+\Shamaseen\Laravel\Ratchet\Externals\WebSocket::isOnline($user_id)
+```
+
+How easy :)
+
+Note: The default listening port for ZMQ is 5555, If you want to listen on another port just add `ZMQ_PORT={PORT_NUMBER}` to your `.env` file.
+
 # Server configuration
 If you want to connect the websocket to a HTTPS website,
- you should use `wss` instead of `ws` when making an instance from shama class, and you need to add these lines to nginx host configuration:
+ you should use `wss` instead of `ws` when making an instance from Shama class, you can add a path for the url but you need to add these lines to nginx host configuration (suppose your url path is /wss2):
 ```
 map $http_upgrade $connection_upgrade {
         default upgrade;
         ''      close;
     }
-
 
 location /wss2 {
  
