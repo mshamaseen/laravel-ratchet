@@ -86,6 +86,8 @@ build:
   nodes:
     analysis:
       dependencies:
+        before:
+          - sudo apt-get install -y libzmq3-dev
         after:
           - composer require --dev squizlabs/php_codesniffer
       tests:
