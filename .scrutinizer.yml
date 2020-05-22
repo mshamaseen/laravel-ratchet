@@ -82,6 +82,9 @@ tools:
 build:
   environment:
     php: 7.3
+    pecl_extensions:
+              - zmq
+    
   nodes:
     analysis:
       dependencies:
@@ -89,8 +92,6 @@ build:
           - sudo apt-get install -y libzmq3-dev
         after:
           - composer require --dev squizlabs/php_codesniffer
-
-
       tests:
         override:
           -
