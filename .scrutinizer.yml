@@ -81,9 +81,10 @@ tools:
 
 build:
   environment:
-    php: 7.3
-    pecl_extensions:
-              - zmq
+    php: 
+      version:  "7.3"
+      pecl_extensions:
+        - zmq
     
   nodes:
     analysis:
