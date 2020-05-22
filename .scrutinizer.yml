@@ -87,13 +87,7 @@ build:
     analysis:
       dependencies:
         before:
-          - sudo apt-get install libzmq3-dev \
-            && git clone git://github.com/mkoppanen/php-zmq.git \
-            && cd php-zmq \
-            && phpize \
-            && ./configure \
-            && make \
-            && make install
+          - sudo apt-get install libzmq3-dev -y && git clone git://github.com/mkoppanen/php-zmq.git && cd php-zmq && phpize && ./configure && make && make install
         after:
           - composer require --dev squizlabs/php_codesniffer
       tests:
