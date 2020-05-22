@@ -87,8 +87,8 @@ build:
     analysis:
       dependencies:
         before:
-	      - sudo apt-get install -y libzmq3-dev
-		  - sudo pecl -d preferred_state=beta install zmq	
+          - sudo apt-get install -y libzmq3-dev
+          - sudo pecl -d preferred_state=beta install zmq
         after:
           - composer require --dev squizlabs/php_codesniffer
       tests:
