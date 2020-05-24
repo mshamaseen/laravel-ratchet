@@ -95,9 +95,9 @@ $this->getClient()->onClose('your route here');
 then your route will be triggered whenever the user close the connection.
 
 
-#Accessing the websocket from Laravel files (out of WebSocket controllers)
+# Accessing the websocket from Laravel files (out of WebSocket controllers)
 
-###Sending data to a user 
+### Sending data to a user 
 If you want to send data to a user from outside of Websocket controller (i.e from Laravel controller or laravel Job), just use Websocket static functions, like this:
 ```php
 \Shamaseen\Laravel\Ratchet\Externals\WebSocket::sendToUser($user_id,array $data))
@@ -105,7 +105,7 @@ If you want to send data to a user from outside of Websocket controller (i.e fro
 
 Easy as it is.
 
-###Check if a user is online
+### Check if a user is online
 ```php
 \Shamaseen\Laravel\Ratchet\Externals\WebSocket::isOnline($user_id)
 ```
