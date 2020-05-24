@@ -110,6 +110,8 @@ Easy as it is.
 \Shamaseen\Laravel\Ratchet\Externals\WebSocket::isOnline($user_id)
 ```
 
+You can also use these static methods in ``WebSocket`` class from anywhere!
+ 
 How easy :)
 
 Note: The default listening port for ZMQ is 5555, If you want to listen on another port just add `ZMQ_PORT={PORT_NUMBER}` to your `.env` file.

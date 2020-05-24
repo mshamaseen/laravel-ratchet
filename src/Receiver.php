@@ -52,21 +52,6 @@ class Receiver implements MessageComponentInterface
         include base_path() . '/routes/websocket.php';
         $this->routes = WsRoute::getRoutes();
     }
-//
-//    function externalRequest($data)
-//    {
-//        $context = new ZMQContext();
-//        $socket = $context->getSocket(ZMQ::SOCKET_REP, 'my pusher');
-//        $socket->connect("tcp://localhost:".env('ZMQ_PORT',5555));
-//        $socket->send('true');
-//
-////        $context = new ZMQContext();
-////        $socket = $context->getSocket(ZMQ::SOCKET_PUSH, 'my pusher');
-////        $socket->connect("tcp://localhost:5555");
-////        $socket->send('this is a data');
-//
-////        $this->sendBack(["received"]);
-//    }
 
     /**
      * @description this function is used to manipulate receiver instance from external php script using zmq
@@ -76,6 +61,7 @@ class Receiver implements MessageComponentInterface
      */
     public function externalRequest($data)
     {
+
         $data = json_decode($data,true);
 
         $method = $data['method'];
@@ -83,11 +69,12 @@ class Receiver implements MessageComponentInterface
         if(method_exists($this,$method))
         {
             $result = call_user_func_array(array($this, $method),$data['args']);
+
             if($result !== null)
             {
                 $context = new ZMQContext();
                 $socket = $context->getSocket(ZMQ::SOCKET_REP,'my pusher');
-                $socket->connect("tcp://localhost:".env('ZMQ_PORT',5555));
+                $socket->connect("tcp://127.0.0.1:".env('ZMQ_PORT',5555));
                 $socket->send($result ? 1 : 0);
             }
         }
@@ -112,6 +99,7 @@ class Receiver implements MessageComponentInterface
      */
     public function onMessage(ConnectionInterface $from, $msg)
     {
+        $GLOBALS['__WS_Receiver'] = $this;
         $msg = json_decode($msg,true);
         $this->callRoute($from,$msg);
     }
