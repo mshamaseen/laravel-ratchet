@@ -60,7 +60,7 @@ class WebSocketService extends Command
         $pull->on('message', array($pusher, 'externalRequest'));
 
         // Set up our WebSocket server for clients wanting real-time updates
-        $webSock = new Server('0.0.0.0:'.env('WEBSOCKET_PORT',9090), $loop); // Binding to 0.0.0.0 means remotes can connect
+        $webSock = new Server(env('WEBSOCKET_URL','127.0.0.1').':'.env('WEBSOCKET_PORT',9090), $loop); // Binding to 0.0.0.0 means remotes can connect
         new IoServer(
             new HttpServer(
                 new WsServer(
