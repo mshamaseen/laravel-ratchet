@@ -44,7 +44,8 @@ class WebSocket
             'args'=>[
                 $user_id,$data
             ]
-        ]))->recv();    }
+        ]))->recv();
+    }
 
     /**
      *
