@@ -26,7 +26,7 @@ trait WebSocketMessagesManager
      */
     function error($request,ConnectionInterface $from, $error)
     {
-        if(env('APP_DEBUG'))
+        if(config('app.debug'))
         {
             echo 'User error: ';
             echo $error."\n";

@@ -56,11 +56,11 @@ class WebSocketService extends Command
         $context = new Context($loop);
         $pull = $context->getSocket(ZMQ::SOCKET_REP,'my pusher');
 //        $pull = $context->getSocket(ZMQ::SOCKET_PULL,'my pusher');
-        $pull->bind('tcp://127.0.0.1:'.env('ZMQ_PORT',5555)); // Binding to 127.0.0.1 means the only client that can connect is itself
+        $pull->bind('tcp://127.0.0.1:'.config('laravel-ratchet.ZMQ_PORT')); // Binding to 127.0.0.1 means the only client that can connect is itself
         $pull->on('message', array($pusher, 'externalRequest'));
 
         // Set up our WebSocket server for clients wanting real-time updates
-        $webSock = new Server(env('WEBSOCKET_URL','127.0.0.1').':'.env('WEBSOCKET_PORT',9090), $loop); // Binding to 0.0.0.0 means remotes can connect
+        $webSock = new Server(config('laravel-ratchet.WEBSOCKET_URL').':'.config('laravel-ratchet.WEBSOCKET_PORT'), $loop); // Binding to 0.0.0.0 means remotes can connect
         new IoServer(
             new HttpServer(
                 new WsServer(
@@ -70,7 +70,7 @@ class WebSocketService extends Command
             $webSock
         );
 
-        $this->info('Websocket is now running at port '.env('WEBSOCKET_PORT',9090));
+        $this->info('Websocket is now running at port '.config('laravel-ratchet.WEBSOCKET_PORT'));
         $loop->run();
     }
 }

@@ -7,5 +7,8 @@
  */
 
 return [
-    'userModelNamespace' => 'App\Entities\Users\User'
+    'userModelNamespace' => 'App\Entities\Users\User',
+    'ZMQ_PORT' => 5555,
+    'WEBSOCKET_URL' => '127.0.0.1',
+    'WEBSOCKET_PORT' => '9090'
 ];

@@ -74,7 +74,7 @@ class Receiver implements MessageComponentInterface
             {
                 $context = new ZMQContext();
                 $socket = $context->getSocket(ZMQ::SOCKET_REP,'my pusher');
-                $socket->connect("tcp://127.0.0.1:".env('ZMQ_PORT',5555));
+                $socket->connect("tcp://127.0.0.1:".config('laravel-ratchet.ZMQ_PORT'));
                 $socket->send($result ? 1 : 0);
             }
         }
