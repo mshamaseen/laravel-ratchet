@@ -78,6 +78,7 @@ trait WebSocketMessagesManager
         /** @var ConnectionInterface $conn */
         $conn = $this->clients[$resourceId]->conn;
         $this->sendToWebSocketUser($conn,$data);
+
         return true;
     }
 

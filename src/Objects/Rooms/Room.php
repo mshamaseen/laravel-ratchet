@@ -32,6 +32,7 @@ class Room
     function addMember($client)
     {
         $this->members[$client->id] = $client;
+        array_push($client->rooms, $this->id);
     }
 
     /**
@@ -40,8 +41,13 @@ class Room
     function removeMember($client)
     {
         unset($this->members[$client->id]);
+        unset($client->rooms[$this->id]);
     }
 
+    /**
+     * @param $client
+     * @return bool
+     */
     function hasMember($client)
     {
         if(array_key_exists($client->id,$this->members))

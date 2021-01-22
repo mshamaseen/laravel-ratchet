@@ -46,10 +46,10 @@ class Client
     public $customAttributes = [];
 
     /**
-     * @param string $route
+     * @param string|callable $route - if it is callable it receive Client as an argument, if it is string it accepts ?parameters=
      * @return Client
      */
-    function onClose(string $route)
+    function onClose($route)
     {
        array_push($this->onCloseRoutes,$route);
 

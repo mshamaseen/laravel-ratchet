@@ -10,7 +10,12 @@
 
 namespace Shamaseen\Laravel\Ratchet;
 
+use Auth;
+use Config;
+use Exception;
 use Illuminate\Validation\ValidationException;
+use Log;
+use Session;
 use Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException;
 use Shamaseen\Laravel\Ratchet\Facades\WsRoute;
 use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
@@ -20,6 +25,7 @@ use Shamaseen\Laravel\Ratchet\Requests\WsRequest;
 use Shamaseen\Laravel\Ratchet\Traits\WebSocketMessagesManager;
 use ZMQ;
 use ZMQContext;
+use ZMQSocketException;
 
 /**
  * Class WebSocket
@@ -56,31 +62,45 @@ class Receiver implements MessageComponentInterface
     /**
      * @description this function is used to manipulate receiver instance from external php script using zmq
      * @param string $data
-     * @throws WebSocketException
-     * @throws \ZMQSocketException
+     * @throws ZMQSocketException
      */
     public function externalRequest($data)
     {
+        $result = null;
+        try{
+            $data = json_decode($data,true);
 
-        $data = json_decode($data,true);
+            $method = $data['method'];
 
-        $method = $data['method'];
-
-        if(method_exists($this,$method))
-        {
             $result = call_user_func_array(array($this, $method),$data['args']);
+        }
+        catch (Exception $exception) {
+            Log::error("ZMQ message couldn't be sent, the error is: ".$exception->getMessage());
+            if(Config::get('app.debug'))
+                $result = "ZMQ message couldn't be sent, the error was ".$exception->getMessage();
+        }
+        finally {
+            //we should always return a response
+            $context = new ZMQContext();
+            $socket = $context->getSocket(ZMQ::SOCKET_REP,'my pusher');
+            $socket->connect("tcp://127.0.0.1:".config('laravel-ratchet.ZMQ_PORT'));
+            $socket->send(json_encode($result));
+        }
+    }
 
-            if($result !== null)
-            {
-                $context = new ZMQContext();
-                $socket = $context->getSocket(ZMQ::SOCKET_REP,'my pusher');
-                $socket->connect("tcp://127.0.0.1:".config('laravel-ratchet.ZMQ_PORT'));
-                $socket->send($result ? 1 : 0);
-            }
-        }
-        else{
-            throw new WebSocketException();
-        }
+    /**
+     * dynamic method call from external websocket request
+     * @param $namespace
+     * @param $method
+     * @param $arg
+     * @return mixed
+     */
+    function callClassMethod($namespace,$method, ... $arg)
+    {
+        $controller = new $namespace;
+        $this->cloneProperties($this, $controller);
+        $controller->receiver = $this;
+        return call_user_func_array(array($controller, $method),$arg[0]);
     }
 
     /**
@@ -95,25 +115,50 @@ class Receiver implements MessageComponentInterface
     /**
      * @param ConnectionInterface $from
      * @param string $msg
-     * @throws \Exception
+     * @throws Exception
      */
     public function onMessage(ConnectionInterface $from, $msg)
     {
-        $GLOBALS['__WS_Receiver'] = $this;
         $msg = json_decode($msg,true);
         $this->callRoute($from,$msg);
     }
 
+    /**
+     * @param ConnectionInterface $from
+     * @param $msg
+     * @throws WebSocketException
+     */
     function callRoute(ConnectionInterface $from, $msg)
     {
         try {
+
             $this->checkForRequiredInMessage($msg, $from);
+
+            $url = explode("?", $msg['route']);
+
+            if (isset($url[1]))
+            {
+                $parametersStrings = explode('&',$url[1]);
+                foreach ($parametersStrings as $parametersString)
+                {
+                    $parameterArray = explode('=',$parametersString);
+
+                    if(!isset($msg[$parameterArray[0]]))
+                    {
+                        $msg[$parameterArray[0]] = $parameterArray[1];
+                    }
+                }
+            }
+
+            if (!isset($this->routes[$url[0]])) {
+                $this->error($msg, $from, 'No such route!');
+            }
+
+            $route = $this->routes[$url[0]];
 
             $this->resetSession($msg['session']);
 
-            $this->resetAuth($msg,$from);
-
-            $route = $this->routes[$msg['route']];
+            $this->resetAuth($msg, $from);
 
             $class = $route->controller;
             $method = $route->method;
@@ -124,6 +169,7 @@ class Receiver implements MessageComponentInterface
             $controller->conn = $from;
             $controller->receiver = $this;
 
+            unset($msg['session'],$msg['route']);
             $controller->request = new WsRequest($msg);
             $controller->route = $route;
 
@@ -133,9 +179,7 @@ class Receiver implements MessageComponentInterface
 
             $controller->$method();
 
-            \Session::save();
-        } catch (WebSocketException $exception) {
-
+            Session::save();
         } catch (ValidationException $exception) {
             $this->sendToWebSocketUser($from, [
                 'message' => $exception->getMessage(),
@@ -154,8 +198,14 @@ class Receiver implements MessageComponentInterface
         $routesToCall = $client->onCloseRoutes;
         foreach ($routesToCall as $route)
         {
-            $msg = ['session'=>$client->session,'route'=>$route];
-            $this->callRoute($conn,$msg);
+            if(is_callable($route))
+            {
+                $route($client);
+            }
+            else{
+                $msg = ['session'=>$client->session,'route'=>$route];
+                $this->callRoute($conn,$msg);
+            }
         }
 
         unset($this->clients[$conn->resourceId]);
@@ -166,10 +216,10 @@ class Receiver implements MessageComponentInterface
 
     /**
      * @param ConnectionInterface $conn
-     * @param \Exception $exception
+     * @param Exception $exception
      * @return null
      */
-    public function onError(ConnectionInterface $conn, \Exception $exception)
+    public function onError(ConnectionInterface $conn, Exception $exception)
     {
         echo "An error has occurred: {$exception->getMessage()}\n";
         echo "In {$exception->getFile()} line {$exception->getLine()}\n";
@@ -187,11 +237,7 @@ class Receiver implements MessageComponentInterface
     function checkForRequiredInMessage($msg, $from)
     {
         if (!isset($msg['route']) || !isset($msg['session'])) {
-            $this->error($msg, $from, 'Either the route is missing in the Request, Or you forget to add the session id ! please refer to the document in github for more details');
-        }
-
-        if (!isset($this->routes[$msg['route']])) {
-            $this->error($msg, $from, 'No such route !');
+            $this->error($msg, $from, 'Either the route is missing in the Request, Or you forget to add the session id! please refer to the document in github for more details');
         }
     }
 
@@ -223,7 +269,7 @@ class Receiver implements MessageComponentInterface
      */
     protected function readFromHandler($session_id)
     {
-        if ($data = \Session::getHandler()->read($session_id)) {
+        if ($data = Session::getHandler()->read($session_id)) {
             $data = @unserialize($data);
 
             if ($data !== false && ! is_null($data) && is_array($data)) {
@@ -241,16 +287,16 @@ class Receiver implements MessageComponentInterface
 
     function getUserModel()
     {
-        return \Config::get('laravel-ratchet.userModelNamespace','App\Entities\Users\User');
+        return Config::get('laravel-ratchet.userModelNamespace','App\Entities\Users\User');
     }
 
     function resetSession($session_id)
     {
-        \Session::flush();
+        Session::flush();
 
-        \Session::setId($session_id);
+        Session::setId($session_id);
 
-        \Session::start();
+        Session::start();
     }
 
     /**
@@ -270,11 +316,11 @@ class Receiver implements MessageComponentInterface
             {
                 $this->error($msg, $from, 'There is no such user.');
             }
-            \Auth::setUser($user);
+            Auth::setUser($user);
 
-            $this->clients[$from->resourceId]->id = \Auth::id();
+            $this->clients[$from->resourceId]->id = Auth::id();
             $this->clients[$from->resourceId]->session = $msg['session'];
-            $this->userAuthSocketMapper[\Auth::id()] = $from->resourceId;
+            $this->userAuthSocketMapper[Auth::id()] = $from->resourceId;
         }
         else
         {
