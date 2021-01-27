@@ -80,6 +80,7 @@ class Receiver implements MessageComponentInterface
                 $result = "ZMQ message couldn't be sent, the error was ".$exception->getMessage();
         }
         finally {
+            Auth::logout();
             //we should always return a response
             $context = new ZMQContext();
             $socket = $context->getSocket(ZMQ::SOCKET_REP,'my pusher');
@@ -120,7 +121,11 @@ class Receiver implements MessageComponentInterface
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $msg = json_decode($msg,true);
+        $this->checkForRequiredInMessage($msg, $from);
+        $this->resetSession($msg['session']);
+        $this->resetAuth($msg, $from);
         $this->callRoute($from,$msg);
+        Auth::logout();
     }
 
     /**
@@ -131,9 +136,6 @@ class Receiver implements MessageComponentInterface
     function callRoute(ConnectionInterface $from, $msg)
     {
         try {
-
-            $this->checkForRequiredInMessage($msg, $from);
-
             $url = explode("?", $msg['route']);
 
             if (isset($url[1]))
@@ -155,11 +157,6 @@ class Receiver implements MessageComponentInterface
             }
 
             $route = $this->routes[$url[0]];
-
-            $this->resetSession($msg['session']);
-
-            $this->resetAuth($msg, $from);
-
             $class = $route->controller;
             $method = $route->method;
             $controller = new $class;
@@ -190,12 +187,14 @@ class Receiver implements MessageComponentInterface
 
     /**
      * @param ConnectionInterface $conn
+     * @throws WebSocketException
      */
     public function onClose(ConnectionInterface $conn)
     {
         // The connection is closed, remove it, as we can no longer send it messages
         $client = $this->clients[$conn->resourceId];
         $routesToCall = $client->onCloseRoutes;
+
         foreach ($routesToCall as $route)
         {
             if(is_callable($route))
@@ -204,6 +203,8 @@ class Receiver implements MessageComponentInterface
             }
             else{
                 $msg = ['session'=>$client->session,'route'=>$route];
+                $this->resetSession($msg['session']);
+                $this->resetAuth($msg, $conn);
                 $this->callRoute($conn,$msg);
             }
         }
@@ -211,7 +212,9 @@ class Receiver implements MessageComponentInterface
         unset($this->clients[$conn->resourceId]);
         unset($this->userAuthSocketMapper[array_search($conn->resourceId,$this->userAuthSocketMapper)]);
 
-        echo "Connection {$conn->resourceId} has disconnected\n";
+        Auth::logout();
+
+        echo "Connection {$conn->resourceId}/ Auth ".Auth::id()." has disconnected\n";
     }
 
     /**
@@ -282,10 +285,10 @@ class Receiver implements MessageComponentInterface
 
     function getUserId($session_array)
     {
-        return $session_array['login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d'];
+        return $session_array[Auth::getName()];
     }
 
-    function getUserModel()
+    static function getUserModel()
     {
         return Config::get('laravel-ratchet.userModelNamespace','App\Entities\Users\User');
     }
@@ -300,7 +303,7 @@ class Receiver implements MessageComponentInterface
     }
 
     /**
-     * @param object $msg
+     * @param array $msg
      * @param ConnectionInterface $from
      * @throws WebSocketException
      */
@@ -311,7 +314,7 @@ class Receiver implements MessageComponentInterface
         if(!empty($data))
         {
             $user_id = $this->getUserId($data);
-            $user = $this->getUserModel()::find($user_id);
+            $user = self::getUserModel()::find($user_id);
             if(!$user)
             {
                 $this->error($msg, $from, 'There is no such user.');

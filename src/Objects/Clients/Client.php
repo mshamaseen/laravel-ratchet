@@ -62,4 +62,12 @@ class Client
             unset($this->onCloseRoutes[$key]);
         }
     }
+
+    /**
+     * kill the connection
+     */
+    function kill()
+    {
+        $this->conn->close();
+    }
 }

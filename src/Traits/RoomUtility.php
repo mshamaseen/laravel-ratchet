@@ -42,6 +42,7 @@ trait RoomUtility
         $room = $this->receiver->rooms[$room_id];
         /** @var Client $client */
         $client = $this->receiver->clients[$this->userAuthSocketMapper[Auth::id()]];
+
         $room->addMember($client);
 
         return $this;
@@ -96,7 +97,7 @@ trait RoomUtility
             if ($createIfNotExist) {
                 return $this->createRoom($room_id);
             }
-            $this->error($this->request, $this->conn, 'Room is not exist');
+            $this->error($this->request, $this->conn, 'Room does not exist');
             return false;
         }
         return true;

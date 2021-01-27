@@ -21,7 +21,7 @@ class WebSocket
     {
         $context = new ZMQContext();
         $socket = $context->getSocket(ZMQ::SOCKET_REQ, 'my pusher');
-        $socket->setSockOpt(ZMQ::SOCKOPT_RCVTIMEO,1000);
+        $socket->setSockOpt(ZMQ::SOCKOPT_RCVTIMEO,5000);
         $socket->connect("tcp://localhost:".config('laravel-ratchet.ZMQ_PORT'));
         return  $socket;
     }

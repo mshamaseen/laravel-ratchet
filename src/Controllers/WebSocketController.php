@@ -31,6 +31,11 @@ class WebSocketController
     public $clients;
 
     /**
+     * @var Client
+     */
+    public $client = null;
+
+    /**
      * Auth to resourceId mapper
      * @var array
      */
@@ -75,6 +80,26 @@ class WebSocketController
      */
     function getClient()
     {
-        return $this->clients[$this->conn->resourceId];
+        if($this->client)
+            return  $this->client;
+
+        $this->client = $this->clients[$this->conn->resourceId];
+        return $this->client;
+    }
+
+    /**
+     * @param string|int $id - laravel Auth id
+     * @throws \Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException
+     */
+    function loginAs($id)
+    {
+        if(isset($this->receiver->userAuthSocketMapper[$id]))
+        {
+            $this->client = $this->clients[$this->receiver->userAuthSocketMapper[$id]];
+            $this->conn = $this->client->conn;
+        }
+
+        $user = Receiver::getUserModel()::findOrFail($id);
+        \Auth::setUser($user);
     }
 }
