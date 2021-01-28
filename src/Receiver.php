@@ -57,6 +57,8 @@ class Receiver implements MessageComponentInterface
         $this->mainRoutes();
         include base_path() . '/routes/websocket.php';
         $this->routes = WsRoute::getRoutes();
+        //to access WS receiver globally
+        $GLOBALS['__WS_Receiver'] = $this;
     }
 
     /**

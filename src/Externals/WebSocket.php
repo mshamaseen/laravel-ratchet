@@ -34,6 +34,16 @@ class WebSocket
      */
     static function sendToUser($user_id, $data)
     {
+        //if you are already inside the websocket, send it using websocket instead of zmq
+        if(isset($GLOBALS['__WS_Receiver']))
+        {
+            /**
+             * @var Receiver $receiver
+             */
+            $receiver = $GLOBALS['__WS_Receiver'];
+            return $receiver->sendToUser($user_id,$data);
+        }
+
         return !!self::socket()->send(json_encode([
             'method' => 'sendToUser',
             'args'=>[
@@ -50,6 +60,16 @@ class WebSocket
      */
     static function isOnline($user_id)
     {
+        //if you are already inside the websocket, send it using websocket instead of zmq
+        if(isset($GLOBALS['__WS_Receiver']))
+        {
+            /**
+             * @var Receiver $GLOBALS['__WS_Receiver']
+             */
+            $receiver = $GLOBALS['__WS_Receiver'];
+            return $receiver->isOnline($user_id);
+        }
+
         return !!self::socket()->send(json_encode([
             'method' => 'isOnline',
             'args'=>[
@@ -69,6 +89,16 @@ class WebSocket
      */
     static function call($namespace,$method,... $arg)
     {
+        //if you are already inside the websocket, send it using websocket instead of zmq
+        if(isset($GLOBALS['__WS_Receiver']))
+        {
+            /**
+             * @var Receiver $GLOBALS['__WS_Receiver']
+             */
+            $receiver = $GLOBALS['__WS_Receiver'];
+            return $receiver->callClassMethod($namespace,$method,$arg);
+        }
+
         return json_decode(self::socket()->send(json_encode([
             'method' => 'callClassMethod',
             'args'=>[
