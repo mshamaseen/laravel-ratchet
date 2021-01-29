@@ -48,7 +48,6 @@ trait WebSocketMessagesManager
      */
     function sendToWebSocketUser(ConnectionInterface $conn,$data)
     {
-        \Log::info('in sending to websocket');
         if(!is_array($data))
             $data = ['msg'=>$data,'event'=>'default'];
 
@@ -70,7 +69,6 @@ trait WebSocketMessagesManager
      */
     function sendToUser($user_id,$data)
     {
-        \Log::info('in send to user');
         if(!$this->isOnline($user_id))
         {
             return false;
