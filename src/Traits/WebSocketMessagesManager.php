@@ -77,7 +77,6 @@ trait WebSocketMessagesManager
         $resourceId = $this->userAuthSocketMapper[$user_id];
         /** @var ConnectionInterface $conn */
         $conn = $this->clients[$resourceId]->conn;
-        \Log::info('sending to websocket');
         $this->sendToWebSocketUser($conn,$data);
 
         return true;
