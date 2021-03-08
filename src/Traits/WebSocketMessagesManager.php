@@ -39,7 +39,7 @@ trait WebSocketMessagesManager
             'message'=>$error
         ];
         $this->sendToWebSocketUser($from,$data);
-        throw new WebSocketException();
+        die;
     }
 
     /**
