@@ -214,9 +214,9 @@ class Receiver implements MessageComponentInterface
         unset($this->clients[$conn->resourceId]);
         unset($this->userAuthSocketMapper[array_search($conn->resourceId,$this->userAuthSocketMapper)]);
 
-        Auth::logout();
-
         echo "Connection {$conn->resourceId}/ Auth ".Auth::id()." has disconnected\n";
+
+        Auth::logout();
     }
 
     /**
