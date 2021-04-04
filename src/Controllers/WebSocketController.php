@@ -89,7 +89,6 @@ class WebSocketController
 
     /**
      * @param string|int $id - laravel Auth id
-     * @throws \Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException
      */
     function loginAs($id)
     {

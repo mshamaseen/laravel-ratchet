@@ -16,7 +16,7 @@ use Exception;
 use Illuminate\Validation\ValidationException;
 use Log;
 use Session;
-use Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException;
+use Shamaseen\Laravel\Ratchet\Exceptions\CallableException;
 use Shamaseen\Laravel\Ratchet\Facades\WsRoute;
 use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
 use Ratchet\ConnectionInterface;
@@ -55,6 +55,7 @@ class Receiver implements MessageComponentInterface
         $this->userAuthSocketMapper = [];
 
         $this->mainRoutes();
+        /** @noinspection PhpIncludeInspection */
         include base_path() . '/routes/websocket.php';
         $this->routes = WsRoute::getRoutes();
         //to access WS receiver globally
@@ -75,6 +76,10 @@ class Receiver implements MessageComponentInterface
             $method = $data['method'];
 
             $result = call_user_func_array(array($this, $method),$data['args']);
+        }
+        catch (CallableException $exception)
+        {
+            echo "\n".$exception->getMessage()."\n";
         }
         catch (Exception $exception) {
             Log::error("ZMQ message couldn't be sent, the error is: ".$exception->getMessage());
@@ -122,18 +127,24 @@ class Receiver implements MessageComponentInterface
      */
     public function onMessage(ConnectionInterface $from, $msg)
     {
-        $msg = json_decode($msg,true);
-        $this->checkForRequiredInMessage($msg, $from);
-        $this->resetSession($msg['session']);
-        $this->resetAuth($msg, $from);
-        $this->callRoute($from,$msg);
-        Auth::logout();
+        try{
+            $msg = json_decode($msg,true);
+            $this->checkForRequiredInMessage($msg, $from);
+            $this->resetSession($msg['session']);
+            $this->resetAuth($msg, $from);
+            $this->callRoute($from,$msg);
+            Auth::logout();
+        }
+        catch (CallableException $exception)
+        {
+            echo "\n".$exception->getMessage()."\n";
+        }
     }
 
     /**
      * @param ConnectionInterface $from
      * @param $msg
-     * @throws WebSocketException
+     * @throws CallableException
      */
     function callRoute(ConnectionInterface $from, $msg)
     {
@@ -179,7 +190,9 @@ class Receiver implements MessageComponentInterface
             $controller->$method();
 
             Session::save();
-        } catch (ValidationException $exception) {
+        }
+        /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (ValidationException $exception) {
             $this->sendToWebSocketUser($from, [
                 'message' => $exception->getMessage(),
                 'errors' => $exception->errors()
@@ -189,7 +202,7 @@ class Receiver implements MessageComponentInterface
 
     /**
      * @param ConnectionInterface $conn
-     * @throws WebSocketException
+     * @throws CallableException
      */
     public function onClose(ConnectionInterface $conn)
     {
@@ -237,7 +250,7 @@ class Receiver implements MessageComponentInterface
     /**
      * @param $msg
      * @param ConnectionInterface $from
-     * @throws WebSocketException
+     * @throws CallableException
      */
     function checkForRequiredInMessage($msg, $from)
     {
@@ -307,7 +320,7 @@ class Receiver implements MessageComponentInterface
     /**
      * @param array $msg
      * @param ConnectionInterface $from
-     * @throws WebSocketException
+     * @throws CallableException
      */
     function resetAuth($msg,$from)
     {

@@ -9,8 +9,8 @@
 namespace Shamaseen\Laravel\Ratchet\Traits;
 
 
-use Shamaseen\Laravel\Ratchet\Exceptions\WebSocketException;
 use Ratchet\ConnectionInterface;
+use Shamaseen\Laravel\Ratchet\Exceptions\CallableException;
 
 /**
  * Trait WebSocketMessagesManager
@@ -22,24 +22,16 @@ trait WebSocketMessagesManager
      * @param $request
      * @param ConnectionInterface $from
      * @param $error
-     * @throws WebSocketException
+     * @throws CallableException
      */
     function error($request,ConnectionInterface $from, $error)
     {
-        if(config('app.debug'))
-        {
-            echo 'User error: ';
-            echo $error."\n";
-            print_r($request);
-            echo " ============================================================== \n \n \n";
-        }
-
         $data = [
             'event'=>'error',
             'message'=>$error
         ];
         $this->sendToWebSocketUser($from,$data);
-        die;
+        throw new CallableException("\nException: ".$error."\nRequest Parameters: ".json_encode($request)."\ncalled by user with ID ".\Auth::id());
     }
 
     /**
