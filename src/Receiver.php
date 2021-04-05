@@ -239,7 +239,7 @@ class Receiver implements MessageComponentInterface
      */
     public function onError(ConnectionInterface $conn, Exception $exception)
     {
-        echo "An error has occurred: {$exception->getMessage()}\n";
+        echo "\n".now()->toDateTimeString()." An error has occurred: {$exception->getMessage()}\n";
         echo "In {$exception->getFile()} line {$exception->getLine()}\n";
         echo $exception->getTraceAsString();
 
