@@ -116,6 +116,13 @@ How easy :)
 
 Note: The default listening port for ZMQ is 5555, If you want to listen on another port just add `ZMQ_PORT={PORT_NUMBER}` to your `.env` file.
 
+
+### Handle errors
+Change the default exception from the published laravel ratchet config to your exception, whenever an exception happen in websocket, the websocket will search for the `report` method in your chosen exception and execute it, feel free to do any kind of report you want.
+
+Note: actually, the exception won't be thrown, all what this does is to call the `report` method and pass the exception to it, Laravel Handler won't be called.  
+
+
 # Server configuration
 If you want to connect the websocket to a HTTPS website,
  you should use `wss` instead of `ws` when making an instance from Shama class, you can add a path for the url but you need to add these lines to nginx host configuration (suppose your url path is /wss2):

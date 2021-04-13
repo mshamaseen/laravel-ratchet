@@ -3,7 +3,7 @@
 
 /**
  * Created by PhpStorm.
- * User: shanmaseen
+ * User: Shamaseen
  * Date: 23/03/19
  * Time: 07:40 م
  */
@@ -82,9 +82,7 @@ class Receiver implements MessageComponentInterface
             echo "\n".$exception->getMessage()."\n";
         }
         catch (Exception $exception) {
-            Log::error("ZMQ message couldn't be sent, the error is: ".$exception->getMessage());
-            if(Config::get('app.debug'))
-                $result = "ZMQ message couldn't be sent, the error was ".$exception->getMessage();
+            $this->reportError($exception);
         }
         finally {
             Auth::logout();
@@ -97,6 +95,25 @@ class Receiver implements MessageComponentInterface
     }
 
     /**
+     * @param Exception $exception
+     */
+    function reportError($exception)
+    {
+        if(Config::get('laravel-ratchet.exception',false))
+        {
+            $class = Config::get('laravel-ratchet.exception');
+            $instance = new $class;
+            if(method_exists($instance,'report'))
+                $instance->report($exception);
+        }
+        else{
+            Log::error("ZMQ message couldn't be sent, the error is: ".$exception->getMessage());
+            if(Config::get('app.debug'))
+                $result = "ZMQ message couldn't be sent, the error was ".$exception->getMessage();
+        }
+    }
+
+    /**
      * dynamic method call from external websocket request
      * @param $namespace
      * @param $method
@@ -105,7 +122,7 @@ class Receiver implements MessageComponentInterface
      */
     function callClassMethod($namespace,$method, ... $arg)
     {
-        $controller = new $namespace;
+        $controller = \App::make($namespace);
         $this->cloneProperties($this, $controller);
         $controller->receiver = $this;
         return call_user_func_array(array($controller, $method),$arg[0]);
@@ -138,6 +155,10 @@ class Receiver implements MessageComponentInterface
         catch (CallableException $exception)
         {
             echo "\n".$exception->getMessage()."\n";
+        }
+        catch (Exception $exception)
+        {
+            $this->reportError($exception);
         }
     }
 
