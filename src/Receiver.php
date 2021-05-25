@@ -108,10 +108,11 @@ class Receiver implements MessageComponentInterface
         if(!$user_id)
             throw new CallableException('You can\'t call websocket without authenticated user.');
 
-        Auth::setUser(User::findOrFail($user_id));
         $controller = \App::make($namespace);
         $this->cloneProperties($this, $controller);
         $controller->receiver = $this;
+        $controller->loginAs($user_id);
+
         return call_user_func_array(array($controller, $method),$arg[0]);
     }
 
