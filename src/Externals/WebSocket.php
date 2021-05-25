@@ -2,8 +2,13 @@
 
 namespace Shamaseen\Laravel\Ratchet\Externals;
 
+use Auth;
+use Shamaseen\Laravel\Ratchet\Exceptions\CallableException;
+use Shamaseen\Laravel\Ratchet\Receiver;
 use ZMQ;
 use ZMQContext;
+use ZMQSocket;
+use ZMQSocketException;
 
 /**
  * Class WebSocket
@@ -14,8 +19,8 @@ class WebSocket
 {
 
     /**
-     * @return \ZMQSocket
-     * @throws \ZMQSocketException
+     * @return ZMQSocket
+     * @throws ZMQSocketException
      */
     private static function socket()
     {
@@ -30,7 +35,7 @@ class WebSocket
      * @param $user_id
      * @param $data
      * @return bool
-     * @throws \ZMQSocketException
+     * @throws ZMQSocketException
      */
     static function sendToUser($user_id, $data)
     {
@@ -56,7 +61,7 @@ class WebSocket
      *
      * @param $user_id
      * @return string
-     * @throws \ZMQSocketException
+     * @throws ZMQSocketException
      */
     static function isOnline($user_id)
     {
@@ -85,7 +90,8 @@ class WebSocket
      * @param $method
      * @param array $arg
      * @return mixed - return the result from the function executed
-     * @throws \ZMQSocketException
+     * @throws ZMQSocketException
+     * @throws CallableException
      */
     static function call($namespace,$method,... $arg)
     {
@@ -93,16 +99,16 @@ class WebSocket
         if(isset($GLOBALS['__WS_Receiver']))
         {
             /**
-             * @var Receiver $GLOBALS['__WS_Receiver']
+             * @var Receiver $receiver
              */
             $receiver = $GLOBALS['__WS_Receiver'];
-            return $receiver->callClassMethod($namespace,$method,$arg);
+            return $receiver->callClassMethod(Auth::id(),$namespace,$method,$arg);
         }
 
         return json_decode(self::socket()->send(json_encode([
             'method' => 'callClassMethod',
             'args'=>[
-                $namespace,$method,$arg
+                Auth::id(),$namespace,$method,$arg
             ]
         ]))->recv());
     }

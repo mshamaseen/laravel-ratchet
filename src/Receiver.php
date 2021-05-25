@@ -10,6 +10,7 @@
 
 namespace Shamaseen\Laravel\Ratchet;
 
+use App\Entities\User\User;
 use Auth;
 use Config;
 use Exception;
@@ -85,13 +86,33 @@ class Receiver implements MessageComponentInterface
             $this->reportError($exception);
         }
         finally {
-            Auth::logout();
             //we should always return a response
             $context = new ZMQContext();
             $socket = $context->getSocket(ZMQ::SOCKET_REP,'my pusher');
             $socket->connect("tcp://127.0.0.1:".config('laravel-ratchet.ZMQ_PORT'));
             $socket->send(json_encode($result));
         }
+    }
+
+    /**
+     * dynamic method call from external websocket request
+     * @param int $user_id
+     * @param $namespace
+     * @param $method
+     * @param mixed ...$arg
+     * @return mixed
+     * @throws CallableException
+     */
+    function callClassMethod(int $user_id,$namespace,$method, ... $arg)
+    {
+        if(!$user_id)
+            throw new CallableException('You can\'t call websocket without authenticated user.');
+
+        Auth::setUser(User::findOrFail($user_id));
+        $controller = \App::make($namespace);
+        $this->cloneProperties($this, $controller);
+        $controller->receiver = $this;
+        return call_user_func_array(array($controller, $method),$arg[0]);
     }
 
     /**
@@ -108,24 +129,7 @@ class Receiver implements MessageComponentInterface
         }
         else{
             Log::error("ZMQ message couldn't be sent, the error is: ".$exception->getMessage());
-            if(Config::get('app.debug'))
-                $result = "ZMQ message couldn't be sent, the error was ".$exception->getMessage();
         }
-    }
-
-    /**
-     * dynamic method call from external websocket request
-     * @param $namespace
-     * @param $method
-     * @param $arg
-     * @return mixed
-     */
-    function callClassMethod($namespace,$method, ... $arg)
-    {
-        $controller = \App::make($namespace);
-        $this->cloneProperties($this, $controller);
-        $controller->receiver = $this;
-        return call_user_func_array(array($controller, $method),$arg[0]);
     }
 
     /**
@@ -150,7 +154,6 @@ class Receiver implements MessageComponentInterface
             $this->resetSession($msg['session']);
             $this->resetAuth($msg, $from);
             $this->callRoute($from,$msg);
-            Auth::logout();
         }
         catch (CallableException $exception)
         {
@@ -249,8 +252,6 @@ class Receiver implements MessageComponentInterface
         unset($this->userAuthSocketMapper[array_search($conn->resourceId,$this->userAuthSocketMapper)]);
 
         echo "Connection {$conn->resourceId}/ Auth ".Auth::id()." has disconnected\n";
-
-        Auth::logout();
     }
 
     /**
