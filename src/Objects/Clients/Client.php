@@ -31,6 +31,12 @@ class Client
     public $conn = null;
 
     /**
+     * current user url
+     * @var null
+     */
+    public $url = null;
+
+    /**
      * @var array
      */
     public $rooms = [];

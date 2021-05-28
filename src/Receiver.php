@@ -80,7 +80,7 @@ class Receiver implements MessageComponentInterface
         }
         catch (CallableException $exception)
         {
-            echo "\n".$exception->getMessage()."\n";
+            echo "\n Error:".$exception->getMessage()."\n";
         }
         catch (Exception $exception) {
             $this->reportError($exception);
@@ -121,15 +121,15 @@ class Receiver implements MessageComponentInterface
      */
     function reportError($exception)
     {
+        echo "\nError: ".$exception->getMessage()."\n";
+        Log::error("ZMQ message couldn't be sent, the error is: ".$exception->getMessage());
+
         if(Config::get('laravel-ratchet.exception',false))
         {
             $class = Config::get('laravel-ratchet.exception');
             $instance = new $class;
             if(method_exists($instance,'report'))
                 $instance->report($exception);
-        }
-        else{
-            Log::error("ZMQ message couldn't be sent, the error is: ".$exception->getMessage());
         }
     }
 
@@ -154,6 +154,7 @@ class Receiver implements MessageComponentInterface
             $this->checkForRequiredInMessage($msg, $from);
             $this->resetSession($msg['session']);
             $this->resetAuth($msg, $from);
+            $this->setURL($msg, $from);
             $this->callRoute($from,$msg);
         }
         catch (CallableException $exception)
@@ -338,6 +339,11 @@ class Receiver implements MessageComponentInterface
         Session::setId($session_id);
 
         Session::start();
+    }
+
+    function setURL($msg,$from)
+    {
+        $this->clients[$from->resourceId]->url = $msg['_url'] ?? '';
     }
 
     /**

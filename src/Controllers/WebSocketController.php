@@ -83,6 +83,10 @@ class WebSocketController
         if($this->client)
             return  $this->client;
 
+        //client is offline
+        if(!$this->conn)
+            return null;
+
         $this->client = $this->clients[$this->conn->resourceId];
         return $this->client;
     }

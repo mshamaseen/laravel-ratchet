@@ -10,6 +10,7 @@ namespace Shamaseen\Laravel\Ratchet\Traits;
 
 use Auth;
 use Illuminate\Support\Collection;
+use Shamaseen\Laravel\Ratchet\Exceptions\CallableException;
 use Shamaseen\Laravel\Ratchet\Objects\Clients\Client;
 use Shamaseen\Laravel\Ratchet\Objects\Rooms\Room;
 use Shamaseen\Laravel\Ratchet\Receiver;
@@ -36,8 +37,18 @@ trait RoomUtility
         return $this->receiver->rooms[$room_id];
     }
 
+    /**
+     * @param $room_id
+     * @return $this
+     * @throws CallableException
+     */
     function addMember($room_id)
     {
+        if(!$this->validateRoom($room_id))
+        {
+            throw new CallableException($room_id.' Room Id does not exist.');
+        }
+
         /** @var Room $room */
         $room = $this->receiver->rooms[$room_id];
         /** @var Client $client */
