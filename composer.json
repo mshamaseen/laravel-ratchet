@@ -5,7 +5,10 @@
     "license": "MIT",
     "keywords": [
         "shamaseen",
-        "laravel-ratchet"
+        "laravel-ratchet",
+        "websocket",
+        "ratchet",
+        "php"
     ],
     "authors": [
         {
